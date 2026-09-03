@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>バースデークエスト - 伝説のたんじょうび</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DotGothic16&family=Press+Start+2P&display=swap');
+
+  :root {
+    --dq-bg: #050505;
+    --dq-border: #f8fafc;
+    --dq-box: #0a0a0a;
+  }
+
+  body {
+    background-color: var(--dq-bg);
+    color: #ffffff;
+    font-family: 'DotGothic16', monospace, sans-serif;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* ドラクエ伝統のダブルホワイトボーダー */
+  .dq-window {
+    background-color: var(--dq-box);
+    border: 4px solid #ffffff;
+    border-radius: 8px;
+    box-shadow: inset 0 0 0 2px #000000, 0 0 15px rgba(255, 255, 255, 0.15);
+    position: relative;
+  }
+
+  .dq-btn {
+    background: transparent;
+    border: 2px solid transparent;
+    transition: all 0.15s ease;
+    cursor: pointer;
+    font-size: 1.15rem;
+    line-height: 1.8;
+  }
+
+  .dq-btn:hover:not(:disabled), .dq-btn:focus:not(:disabled) {
+    border-color: #ffffff;
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+
+  .dq-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* レトロアニメーション */
+  @keyframes shake {
+    0%, 100% { transform: translate(0, 0); }
+    20% { transform: translate(-8px, 4px); }
+    40% { transform: translate(8px, -4px); }
+    60% { transform: translate(-6px, -2px); }
+    80% { transform: translate(6px, 3px); }
+  }
+
+  @keyframes flash-damage {
+    0%, 100% { opacity: 1; filter: none; }
+    50% { opacity: 0.1; filter: drop-shadow(0 0 12px #ef4444); }
+  }
+
+  @keyframes flash-powerful {
+    0%, 100% { opacity: 1; filter: none; }
+    25% { opacity: 0.2; filter: drop-shadow(0 0 20px #fbbf24); }
+    50% { opacity: 0.9; filter: drop-shadow(0 0 30px #ef4444); }
+    75% { opacity: 0.1; filter: drop-shadow(0 0 20px #fbbf24); }
+  }
+
+  @keyframes float-idle {
+    0%, 100% { transform: translateY(0px); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .anim-shake {
+    animation: shake 0.35s cubic-bezier(.36,.07,.19,.97) both;
+  }
+
+  .anim-damage {
+    animation: flash-damage 0.35s ease-in-out both;
+  }
+
+  .anim-powerful {
+    animation: flash-powerful 0.5s ease-in-out both;
+  }
+
+  .anim-idle {
+    animation: float-idle 2.6s ease-in-out infinite;
+  }
+
+  /* テキストカーソルの点滅 */
+  .cursor-blink::after {
+    content: "▼";
+    display: inline-block;
+    margin-left: 6px;
+    animation: blink 0.8s infinite steps(1);
+    color: #facc15;
+  }
+
+  @keyframes blink {
+    0%, 50% { opacity: 1; }
+    51%, 100% { opacity: 0; }
+  }
+
+  /* 紙吹雪Canvas */
+  #confetti-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 50;
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-x-hidden">
+<canvas id="confetti-canvas"></canvas>
+
+<div class="w-full max-w-lg flex flex-col gap-3 relative z-10">
+
+  <!-- ヘッダー：タイトルと音量 -->
+  <div class="flex items-center justify-between px-2 text-xs sm:text-sm text-yellow-300">
+    <span class="tracking-widest flex items-center gap-1">
+      ⚔️ BIRTHDAY QUEST I
+    </span>
+    <div class="flex items-center gap-2">
+      <button id="sound-toggle-btn" class="border border-white/40 px-2 py-0.5 rounded hover:bg-white/10 text-[11px] text-gray-200">
+        🔊 SOUND: ON
+      </button>
+      <span id="bgm-indicator" class="hidden text-pink-400 animate-pulse text-[11px]">🎵 BGM 演奏中</span>
+    </div>
+  </div>
+
+  <!-- ステータスウィンドウ ＆ 所持品リスト -->
+  <div class="grid grid-cols-5 gap-2">
+    <!-- 勇者ステータス -->
+    <div class="col-span-3 dq-window p-3 text-sm sm:text-base leading-relaxed">
+      <div class="flex justify-between items-center border-b border-white/20 pb-1 mb-1">
+        <span class="text-yellow-400 font-bold" id="hero-name-label">勇者 なまえ</span>
+        <span class="text-xs bg-yellow-400/20 text-yellow-300 px-1.5 py-0.5 rounded" id="hero-lv-label">Lv. 1</span>
+      </div>
+      <div class="flex justify-between">
+        <span>ＨＰ</span>
+        <span class="text-emerald-400 font-bold tracking-wider"><span id="hero-hp">34</span> / <span id="hero-maxhp">34</span></span>
+      </div>
+      <div class="flex justify-between">
+        <span>ＭＰ</span>
+        <span class="text-sky-400 font-bold tracking-wider"><span id="hero-mp">14</span> / <span id="hero-maxmp">14</span></span>
+      </div>
+      <div class="flex justify-between text-xs text-gray-300 pt-1 border-t border-white/10 mt-1">
+        <span>ちから: <span id="hero-atk" class="text-white">14</span></span>
+        <span>みのまもり: <span id="hero-def" class="text-white">6</span></span>
+      </div>
+    </div>
+
+    <!-- お宝（ドロップ品）ウィンドウ -->
+    <div class="col-span-2 dq-window p-2.5 flex flex-col justify-between text-xs">
+      <div class="text-yellow-300 border-b border-white/20 pb-1 font-bold">手に入れた宝物</div>
+      <div class="flex flex-col gap-1.5 my-auto py-1">
+        <div id="item-cake" class="flex items-center gap-1.5 text-gray-500 transition-colors">
+          <span class="text-base">🎂</span> <span class="item-name">ケーキ</span>
+        </div>
+        <div id="item-feast" class="flex items-center gap-1.5 text-gray-500 transition-colors">
+          <span class="text-base">🍗</span> <span class="item-name">ごちそう</span>
+        </div>
+        <div id="item-present" class="flex items-center gap-1.5 text-gray-500 transition-colors">
+          <span class="text-base">🎁</span> <span class="item-name">プレゼント</span>
+        </div>
+      </div>
+      <div class="text-[10px] text-gray-400 text-right" id="items-collected-count">0 / 3 個</div>
+    </div>
+  </div>
+
+  <!-- モンスター出現ウィンドウ -->
+  <div class="dq-window h-56 sm:h-64 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-black">
+    <!-- 戦闘背景エフェクト -->
+    <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+
+    <!-- 敵表示 -->
+    <div id="monster-container" class="flex flex-col items-center justify-center anim-idle z-10 transition-transform">
+      <div id="monster-sprite" class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]">
+      </div>
+      <div id="monster-name" class="mt-2 text-base sm:text-lg tracking-wider text-yellow-300 font-bold">
+        ショートスライム
+      </div>
+      <div class="w-28 sm:w-36 bg-neutral-900 border border-white/40 h-2 rounded mt-1 overflow-hidden">
+        <div id="monster-hp-bar" class="bg-red-500 h-full w-full transition-all duration-300"></div>
+      </div>
+    </div>
+
+    <!-- 撃破時の祝福オーバーレイ（初期非表示） -->
+    <div id="celebration-overlay" class="hidden absolute inset-0 bg-black/90 z-20 flex flex-col items-center justify-center p-4 text-center">
+      <div class="text-3xl sm:text-4xl mb-2 animate-bounce">🎉 🎂 🎁</div>
+      <div class="text-xl sm:text-2xl font-bold text-yellow-300 tracking-wider mb-2">HAPPY BIRTHDAY!!</div>
+      <p class="text-xs sm:text-sm text-pink-300 max-w-xs leading-relaxed mb-3" id="birthday-custom-msg">
+        勇者の たんじょうびを いわうため、すべてのごちそうと たからのプレゼントが あつまった！
+      </p>
+      <div class="flex gap-2">
+        <button id="restart-btn" class="dq-window px-4 py-1.5 text-xs text-yellow-300 hover:bg-white/10 active:scale-95 transition">
+          ▶ もういちど ぼうけんする
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- メッセージウィンドウ -->
+  <div class="dq-window p-3 min-h-[85px] sm:min-h-[95px] flex flex-col justify-between text-sm sm:text-base leading-relaxed cursor-pointer" id="msg-box">
+    <div id="message-text" class="text-gray-100 whitespace-pre-wrap"></div>
+    <div class="text-right text-xs text-gray-500">
+      <span id="continue-hint" class="hidden cursor-blink">つぎへ</span>
+    </div>
+  </div>
+
+  <!-- コマンドウィンドウ -->
+  <div class="dq-window p-3 grid grid-cols-2 sm:grid-cols-4 gap-2">
+    <button class="dq-btn flex items-center justify-center text-left py-2 px-1" id="btn-attack">
+      <span class="mr-1 text-yellow-400">▶</span>こうげき
+    </button>
+    <button class="dq-btn flex items-center justify-center text-left py-2 px-1" id="btn-magic">
+      <span class="mr-1 text-sky-400" id="magic-cursor">▶</span><span id="magic-text">ホイミ(3)</span>
+    </button>
+    <button class="dq-btn flex items-center justify-center text-left py-2 px-1" id="btn-gira">
+      <span class="mr-1 text-red-400" id="gira-cursor">▶</span><span id="gira-text">ギラ(4)</span>
+    </button>
+    <button class="dq-btn flex items-center justify-center text-left py-2 px-1" id="btn-escape">
+      <span class="mr-1 text-gray-400">▶</span>にげる
+    </button>
+  </div>
+
+  <!-- 名前変更モーダル/インプット -->
+  <div class="text-center">
+    <button id="rename-btn" class="text-xs text-gray-400 hover:text-yellow-300 underline tracking-wider">
+      勇者の名前・バースデーメッセージを変更する
+    </button>
+  </div>
+</div>
+
+<!-- 設定モーダル（初回スタート画面 兼 名前変更） -->
+<div id="modal-backdrop" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+  <div class="dq-window w-full max-w-sm p-4 sm:p-5 flex flex-col gap-3">
+    <div class="text-center border-b border-white/30 pb-2">
+      <div class="text-[11px] text-yellow-300 tracking-widest mb-1">⚔️ BIRTHDAY QUEST ⚔️</div>
+      <h3 id="modal-title" class="text-white text-sm sm:text-base font-bold">あなたのなまえを 入力してください</h3>
+    </div>
+
+    <!-- ストーリーあらすじ案内 -->
+    <div id="modal-prologue-preview" class="text-xs text-yellow-200/90 bg-neutral-900/80 border border-white/20 p-2.5 rounded leading-relaxed">
+      きょうは あなたの 特別な誕生日。<br>
+      しかし パーティーに必要な大切な宝が 魔物たちに奪われてしまった！<br>
+      宝を取り戻し、最高の誕生日を迎えるため 冒険へ旅立とう！
+    </div>
+
+    <div>
+      <label class="text-xs text-gray-300 block mb-1">あなたの なまえ：</label>
+      <input type="text" id="input-hero-name" maxlength="10" placeholder="例：たろう、バースデー" value="バースデー" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold" />
+    </div>
+    <div>
+      <label class="text-xs text-gray-300 block mb-1">お祝いメッセージ：</label>
+      <input type="text" id="input-bday-msg" maxlength="40" value="すてきな １ねんに なりますように！" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400" />
+    </div>
+    <div class="flex justify-end gap-2 mt-2">
+      <button id="modal-close-btn" class="hidden px-3 py-1.5 border border-white text-xs hover:bg-white/10">キャンセル</button>
+      <button id="modal-submit-btn" class="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs sm:text-sm tracking-wider transition active:scale-95">
+        ▶ ぼうけんを はじめる！
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========================================================
+// 8-bit Web Audio API サウンドシステム（ファミコン風音源）
+// ========================================================
+class ChiptuneAudio {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+    this.isPlayingBgm = false;
+    this.bgmTimeouts = [];
+  }
+
+  init() {
+    if (!this.ctx) {
+      const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+      this.ctx = new AudioContextClass();
+    }
+    if (this.ctx.state === 'suspended') {
+      this.ctx.resume();
+    }
+  }
+
+  toggleMute() {
+    this.muted = !this.muted;
+    if (this.muted) {
+      this.stopMelody();
+    }
+    return !this.muted;
+  }
+
+  // 短い単音トーン生成
+  playTone(freq, type = 'square', duration = 0.1, gainVal = 0.1, startDelay = 0) {
+    if (this.muted) return;
+    this.init();
+    const t = this.ctx.currentTime + startDelay;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t);
+
+    gain.gain.setValueAtTime(gainVal, t);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(t);
+    osc.stop(t + duration);
+  }
+
+  // こうげき音
+  playAttackSound() {
+    if (this.muted) return;
+    this.init();
+    const t = this.ctx.currentTime;
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(320, t);
+    osc.frequency.exponentialRampToValueAtTime(60, t + 0.12);
+    gain.gain.setValueAtTime(0.2, t);
+    gain.gain.linearRampToValueAtTime(0.001, t + 0.12);
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+    osc.start(t);
+    osc.stop(t + 0.12);
+  }
+
+  // 呪文音（ギラ/通常）
+  playMagicSound() {
+    if (this.muted) return;
+    this.init();
+    [350, 440, 523, 659, 784, 1046].forEach((f, i) => {
+      this.playTone(f, 'square', 0.08, 0.1, i * 0.04);
+    });
+  }
+
+  // 強力呪文音（ベギラマ用）
+  playBigMagicSound() {
+    if (this.muted) return;
+    this.init();
+    [261, 330, 392, 523, 659, 784, 1046, 1318, 1568].forEach((f, i) => {
+      this.playTone(f, 'sawtooth', 0.09, 0.12, i * 0.035);
+    });
+  }
+
+  // 回復（ホイミ）音
+  playHealSound() {
+    if (this.muted) return;
+    this.init();
+    [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+      this.playTone(f, 'triangle', 0.15, 0.15, i * 0.07);
+    });
+  }
+
+  // 上位回復（ベホイミ）音
+  playBigHealSound() {
+    if (this.muted) return;
+    this.init();
+    [392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51].forEach((f, i) => {
+      this.playTone(f, 'triangle', 0.18, 0.18, i * 0.06);
+    });
+  }
+
+  // 被ダメージ音
+  playDamageSound() {
+    if (this.muted) return;
+    this.init();
+    this.playTone(110, 'sawtooth', 0.18, 0.22);
+    this.playTone(90, 'square', 0.18, 0.18);
+  }
+
+  // 撃破ファンファーレ
+  playFanfare() {
+    if (this.muted) return;
+    this.init();
+    const notes = [
+      { f: 523.25, d: 0.12 },
+      { f: 523.25, d: 0.12 },
+      { f: 523.25, d: 0.12 },
+      { f: 659.25, d: 0.35 }
+    ];
+    let time = 0;
+    notes.forEach(n => {
+      this.playTone(n.f, 'square', n.d, 0.15, time);
+      time += n.d + 0.03;
+    });
+  }
+
+  // 呪文習得・パワーアップファンファーレ
+  playPowerUpFanfare() {
+    if (this.muted) return;
+    this.init();
+    const notes = [
+      { f: 392.00, d: 0.1 },
+      { f: 440.00, d: 0.1 },
+      { f: 523.25, d: 0.1 },
+      { f: 659.25, d: 0.12 },
+      { f: 783.99, d: 0.15 },
+      { f: 1046.50, d: 0.35 }
+    ];
+    let time = 0;
+    notes.forEach(n => {
+      this.playTone(n.f, 'square', n.d, 0.16, time);
+      time += n.d + 0.02;
+    });
+  }
+
+  // ボス撃破時の「ハッピーバースデートゥーユー」メロディ演奏
+  playHappyBirthdayMelody() {
+    if (this.muted) return;
+    this.init();
+    this.stopMelody();
+    this.isPlayingBgm = true;
+    document.getElementById('bgm-indicator').classList.remove('hidden');
+
+    const G4 = 392.00, A4 = 440.00, B4 = 493.88;
+    const C5 = 523.25, D5 = 587.33, E5 = 659.25, F5 = 698.46, G5 = 783.99;
+
+    const beat = 0.45;
+    const melody = [
+      // Hap-py Birth-day to you
+      { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 2.0 },
+      // Hap-py Birth-day to you
+      { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.0 },
+      // Hap-py Birth-day dear (Hero)
+      { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: G5, d: 1.0 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 1.0 }, { f: A4, d: 1.5 },
+      // Hap-py Birth-day to you!
+      { f: F5, d: 0.75 }, { f: F5, d: 0.25 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.5 }
+    ];
+
+    let current = 0.1;
+    melody.forEach((note) => {
+      const duration = note.d * beat;
+      const tid = setTimeout(() => {
+        if (!this.muted && this.isPlayingBgm) {
+          this.playTone(note.f, 'square', duration * 0.9, 0.18);
+          this.playTone(note.f / 2, 'triangle', duration * 0.9, 0.12);
+        }
+      }, current * 1000);
+      this.bgmTimeouts.push(tid);
+      current += duration;
+    });
+
+    const finishTid = setTimeout(() => {
+      this.isPlayingBgm = false;
+      document.getElementById('bgm-indicator').classList.add('hidden');
+    }, current * 1000);
+    this.bgmTimeouts.push(finishTid);
+  }
+
+  stopMelody() {
+    this.bgmTimeouts.forEach(t => clearTimeout(t));
+    this.bgmTimeouts = [];
+    this.isPlayingBgm = false;
+    document.getElementById('bgm-indicator')?.classList.add('hidden');
+  }
+}
+
+const audio = new ChiptuneAudio();
+
+// ========================================================
+// ゲームデータ定義（3連戦：ケーキ → ごちそう → プレゼント）
+// ========================================================
+const MONSTER_SVGS = {
+  // 1. ショートスライム（イチゴショートケーキを冠した牙付き魔物スライム）
+  slime: `
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
+      <!-- スライム本体（しずく型） -->
+      <path d="M50 16 C30 16 16 42 16 64 C16 82 30 92 50 92 C70 92 84 82 84 64 C84 42 70 16 50 16 Z" fill="#0284c7" stroke="#082f49" stroke-width="2.5"/>
+      <path d="M50 20 C66 20 78 44 78 64 C78 78 66 87 50 87 C34 87 22 78 22 64 C22 44 34 20 50 20 Z" fill="#38bdf8"/>
+      <!-- ハイライト -->
+      <ellipse cx="33" cy="40" rx="5" ry="9" transform="rotate(-25 33 40)" fill="#bae6fd" opacity="0.85"/>
+      <!-- 生クリームのドリップ飾り -->
+      <path d="M30 40 Q40 46 50 38 Q60 46 70 40 Q75 32 68 28 Q50 22 32 28 Q25 32 30 40 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+      <circle cx="50" cy="24" r="7" fill="#ef4444"/>
+      <circle cx="48" cy="22" r="1.5" fill="#fef08a"/>
+      <!-- ろうそくと揺れる炎 -->
+      <rect x="48" y="8" width="4" height="10" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
+      <path d="M50 2 Q54 6 50 9 Q46 6 50 2 Z" fill="#ea580c">
+        <animate attributeName="d" values="M50 2 Q54 6 50 9 Q46 6 50 2 Z;M50 1 Q55 5 50 9 Q45 5 50 1 Z;M50 2 Q54 6 50 9 Q46 6 50 2 Z" dur="0.6s" repeatCount="indefinite"/>
+      </path>
+      <!-- 目（ドラクエ風クリクリ目） -->
+      <circle cx="37" cy="58" r="7" fill="#ffffff" stroke="#0f172a" stroke-width="2.2"/>
+      <circle cx="39" cy="58" r="3.5" fill="#0f172a"/>
+      <circle cx="40" cy="56" r="1.3" fill="#ffffff"/>
+      <circle cx="63" cy="58" r="7" fill="#ffffff" stroke="#0f172a" stroke-width="2.2"/>
+      <circle cx="61" cy="58" r="3.5" fill="#0f172a"/>
+      <circle cx="62" cy="56" r="1.3" fill="#ffffff"/>
+      <!-- 口と小さなキバ -->
+      <path d="M42 70 Q50 78 58 70" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
+      <polygon points="46,70 48,74 50,70" fill="#ffffff"/>
+      <polygon points="52,70 54,74 56,70" fill="#ffffff"/>
+    </svg>
+  `,
+
+  // 2. ごちそうサウルス（バトルレックス風の凶暴な肉食恐竜モンスター）
+  dino: `
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_16px_rgba(22,163,74,0.6)]">
+      <!-- 尻尾 -->
+      <path d="M22 68 Q10 75 8 85 Q16 86 28 78 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+      <!-- 背中のトゲ -->
+      <polygon points="26,45 18,37 28,41" fill="#e11d48"/>
+      <polygon points="32,37 26,29 35,35" fill="#e11d48"/>
+      <polygon points="40,31 36,23 44,29" fill="#e11d48"/>
+      <!-- 胴体 -->
+      <ellipse cx="48" cy="65" rx="26" ry="24" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/>
+      <!-- お腹の黄色蛇腹 -->
+      <ellipse cx="50" cy="67" rx="16" ry="17" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/>
+      <!-- 腕とマンガ肉（骨付き肉） -->
+      <path d="M30 60 Q22 60 25 72" stroke="#16a34a" stroke-width="6" stroke-linecap="round" fill="none"/>
+      <rect x="11" y="62" width="22" height="15" rx="6" fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5" transform="rotate(-15 22 69)"/>
+      <circle cx="9" cy="60" r="3.5" fill="#f8fafc"/>
+      <circle cx="9" cy="67" r="3.5" fill="#f8fafc"/>
+      <circle cx="35" cy="74" r="3.5" fill="#f8fafc"/>
+      <circle cx="35" cy="80" r="3.5" fill="#f8fafc"/>
+      <!-- 足と鋭い爪 -->
+      <path d="M36 84 L34 94 L44 94 L42 84 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+      <path d="M60 84 L58 94 L68 94 L66 84 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+      <polygon points="33,94 35,97 37,94" fill="#ffffff"/>
+      <polygon points="40,94 42,97 44,94" fill="#ffffff"/>
+      <polygon points="57,94 59,97 61,94" fill="#ffffff"/>
+      <polygon points="64,94 66,97 68,94" fill="#ffffff"/>
+      <!-- 頭部・凶暴なアゴ -->
+      <path d="M42 48 C42 29 55 18 70 20 C82 22 89 31 89 42 C89 52 76 56 64 56 C52 56 42 54 42 48 Z" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/>
+      <!-- 2本の角 -->
+      <path d="M52 23 Q52 8 43 7 Q47 17 56 21 Z" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
+      <path d="M64 19 Q68 7 61 5 Q61 15 67 19 Z" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
+      <!-- 開いた口・牙 -->
+      <path d="M72 44 L89 44 L81 52 L68 50 Z" fill="#991b1b"/>
+      <polygon points="73,44 75,48 77,44" fill="#ffffff"/>
+      <polygon points="78,44 80,49 82,44" fill="#ffffff"/>
+      <polygon points="83,44 85,48 87,44" fill="#ffffff"/>
+      <polygon points="75,50 77,46 79,50" fill="#ffffff"/>
+      <polygon points="81,50 83,46 85,50" fill="#ffffff"/>
+      <!-- ギラつく赤目 -->
+      <polygon points="61,28 73,32 63,36" fill="#dc2626"/>
+      <circle cx="67" cy="32" r="2.5" fill="#facc15"/>
+      <circle cx="67" cy="32" r="1.2" fill="#000000"/>
+      <!-- 鼻息 -->
+      <circle cx="87" cy="37" r="1.6" fill="#ea580c"/>
+    </svg>
+  `,
+
+  // 3. プレゼント大魔王（プレゼントボックスから出現する邪悪な大魔王・ミミックロード）
+  demon: `
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_22px_rgba(168,85,247,0.7)]">
+      <!-- 邪悪な魔力オーラ環 -->
+      <circle cx="50" cy="46" r="38" fill="none" stroke="#c084fc" stroke-width="1.8" stroke-dasharray="4 3" opacity="0.75"/>
+      <!-- 巨大なコウモリの魔翼 -->
+      <path d="M30 40 Q6 24 4 46 Q16 48 24 58 Q22 47 32 46 Z" fill="#4c1d95" stroke="#2e1065" stroke-width="2"/>
+      <path d="M70 40 Q94 24 96 46 Q84 48 76 58 Q78 47 68 46 Z" fill="#4c1d95" stroke="#2e1065" stroke-width="2"/>
+      <!-- 魔王の頭部・威圧的な紫の肌 -->
+      <path d="M50 20 C36 20 34 34 34 44 C34 56 42 62 50 62 C58 62 66 56 66 44 C66 34 64 20 50 20 Z" fill="#312e81" stroke="#1e1b4b" stroke-width="2.5"/>
+      <!-- 巨大な深紅の角 -->
+      <path d="M38 28 Q22 15 24 5 Q33 15 42 22 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
+      <path d="M62 28 Q78 15 76 5 Q67 15 58 22 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
+      <!-- 黄金の魔王冠 -->
+      <polygon points="40,20 44,11 50,17 56,11 60,20" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
+      <circle cx="50" cy="18" r="2.2" fill="#ef4444"/>
+      <!-- 不気味に光る魔眼 -->
+      <polygon points="38,36 47,38 40,43" fill="#f43f5e"/>
+      <circle cx="43" cy="39" r="1.6" fill="#fef08a"/>
+      <polygon points="62,36 53,38 60,43" fill="#f43f5e"/>
+      <circle cx="57" cy="39" r="1.6" fill="#fef08a"/>
+      <!-- 邪悪なニヤリ笑いと牙 -->
+      <path d="M43 51 Q50 58 57 51 Q50 62 43 51 Z" fill="#701a75" stroke="#4a044e" stroke-width="1"/>
+      <polygon points="45,51 47,54 49,51" fill="#ffffff"/>
+      <polygon points="51,51 53,54 55,51" fill="#ffffff"/>
+      <!-- 漆黒のマント・トゲ肩当て -->
+      <path d="M28 58 L18 63 L32 70 Z" fill="#581c87" stroke="#3b0764" stroke-width="2"/>
+      <path d="M72 58 L82 63 L68 70 Z" fill="#581c87" stroke="#3b0764" stroke-width="2"/>
+      <!-- 下半身：宝箱（ミミック調のプレゼントボックス） -->
+      <rect x="23" y="66" width="54" height="28" rx="3" fill="#dc2626" stroke="#991b1b" stroke-width="2.5"/>
+      <rect x="46" y="66" width="8" height="28" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+      <rect x="23" y="78" width="54" height="6" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+      <!-- 箱のフチ（ギザギザの罠の歯） -->
+      <polygon points="20,66 80,66 76,60 24,60" fill="#991b1b" stroke="#7f1d1d" stroke-width="2"/>
+      <polygon points="27,66 31,62 35,66" fill="#ffffff"/>
+      <polygon points="39,66 43,62 47,66" fill="#ffffff"/>
+      <polygon points="53,66 57,62 61,66" fill="#ffffff"/>
+      <polygon points="65,66 69,62 73,66" fill="#ffffff"/>
+    </svg>
+  `
+};
+
+const STAGES = [
+  {
+    id: 1,
+    name: "ショートスライム",
+    title: "ケーキの まもの",
+    sprite: MONSTER_SVGS.slime,
+    maxHp: 26,
+    attack: 9,
+    defense: 4,
+    dropItemKey: "cake",
+    dropItemName: "バースデーケーキ 🎂",
+    encounterMsg: "甘い香りと共に ショートスライムが あらわれた！",
+    dropMsg: "ショートスライムは たからばこを おとしていった！\nなんと 【バースデーケーキ】を てにいれた！"
+  },
+  {
+    id: 2,
+    name: "ごちそうサウルス",
+    title: "パーティーの ごちそう",
+    sprite: MONSTER_SVGS.dino,
+    maxHp: 48,
+    attack: 16,
+    defense: 7,
+    dropItemKey: "feast",
+    dropItemName: "ごうかなごちそう 🍗🍕",
+    encounterMsg: "おいしそうな におい！ ごちそうサウルスが あらわれた！",
+    dropMsg: "ごちそうサウルスを たおした！\nおいしそうな 【ごちそう】を てにいれた！"
+  },
+  {
+    id: 3,
+    name: "プレゼント大魔王",
+    title: "バースデーの 大ボス",
+    sprite: MONSTER_SVGS.demon,
+    maxHp: 95,
+    attack: 23,
+    defense: 12,
+    dropItemKey: "present",
+    dropItemName: "最高のプレゼント 🎁✨",
+    encounterMsg: "リボンをたなびかせ、プレゼント大魔王が たちふさがった！",
+    dropMsg: "プレゼント大魔王は ひかりかがやき くず折れた！\nまばゆい 【プレゼントの箱】を てにいれた！！"
+  }
+];
+
+let gameState = {
+  hero: {
+    name: "バースデー",
+    level: 1,
+    hp: 34,
+    maxHp: 34,
+    mp: 14,
+    maxMp: 14,
+    attack: 14,
+    defense: 6,
+    hasAdvancedSpells: false // ベホイミ＆ベギラマ習得フラグ
+  },
+  stageIndex: 0,
+  currentMonster: null,
+  monsterHp: 0,
+  inventory: {
+    cake: false,
+    feast: false,
+    present: false
+  },
+  customBirthdayMsg: "すてきな １ねんに なりますように！",
+  isBusy: false,
+  typingTimer: null,
+  isGameStarted: false
+};
+
+// ========================================================
+// UI・タイプライター演出ロジック
+// ========================================================
+function logMessage(text, callback = null) {
+  const msgEl = document.getElementById('message-text');
+  const hintEl = document.getElementById('continue-hint');
+  
+  if (gameState.typingTimer) {
+    clearTimeout(gameState.typingTimer);
+    gameState.typingTimer = null;
+  }
+
+  msgEl.innerText = "";
+  hintEl.classList.add('hidden');
+  
+  let i = 0;
+  function typeChar() {
+    if (i < text.length) {
+      msgEl.innerText += text.charAt(i);
+      i++;
+      gameState.typingTimer = setTimeout(typeChar, 24);
+    } else {
+      gameState.typingTimer = null;
+      if (callback) callback();
+    }
+  }
+  typeChar();
+}
+
+function updateHeroUI() {
+  const h = gameState.hero;
+  document.getElementById('hero-name-label').innerText = `勇者 ${h.name}`;
+  document.getElementById('hero-lv-label').innerText = `Lv. ${h.level}`;
+  document.getElementById('hero-hp').innerText = Math.max(0, h.hp);
+  document.getElementById('hero-maxhp').innerText = h.maxHp;
+  document.getElementById('hero-mp').innerText = Math.max(0, h.mp);
+  document.getElementById('hero-maxmp').innerText = h.maxMp;
+  document.getElementById('hero-atk').innerText = h.attack;
+  document.getElementById('hero-def').innerText = h.defense;
+
+  // 呪文パワーアップ状態に応じたコマンドボタン更新
+  const magicTextEl = document.getElementById('magic-text');
+  const magicCursorEl = document.getElementById('magic-cursor');
+  const giraTextEl = document.getElementById('gira-text');
+  const giraCursorEl = document.getElementById('gira-cursor');
+
+  if (h.hasAdvancedSpells) {
+    magicTextEl.innerText = "ベホイミ(6)";
+    magicTextEl.className = "text-emerald-300 font-bold";
+    magicCursorEl.className = "mr-1 text-emerald-400";
+
+    giraTextEl.innerText = "ベギラマ(8)";
+    giraTextEl.className = "text-amber-300 font-bold";
+    giraCursorEl.className = "mr-1 text-amber-400";
+  } else {
+    magicTextEl.innerText = "ホイミ(3)";
+    magicTextEl.className = "";
+    magicCursorEl.className = "mr-1 text-sky-400";
+
+    giraTextEl.innerText = "ギラ(4)";
+    giraTextEl.className = "";
+    giraCursorEl.className = "mr-1 text-red-400";
+  }
+}
+
+function updateInventoryUI() {
+  const inv = gameState.inventory;
+  const count = Object.values(inv).filter(Boolean).length;
+  
+  const cakeEl = document.getElementById('item-cake');
+  const feastEl = document.getElementById('item-feast');
+  const presentEl = document.getElementById('item-present');
+
+  if (inv.cake) {
+    cakeEl.className = "flex items-center gap-1.5 text-pink-400 font-bold drop-shadow";
+  } else {
+    cakeEl.className = "flex items-center gap-1.5 text-gray-500";
+  }
+
+  if (inv.feast) {
+    feastEl.className = "flex items-center gap-1.5 text-amber-400 font-bold drop-shadow";
+  } else {
+    feastEl.className = "flex items-center gap-1.5 text-gray-500";
+  }
+
+  if (inv.present) {
+    presentEl.className = "flex items-center gap-1.5 text-yellow-300 font-bold drop-shadow";
+  } else {
+    presentEl.className = "flex items-center gap-1.5 text-gray-500";
+  }
+
+  document.getElementById('items-collected-count').innerText = `${count} / 3 個`;
+}
+
+function updateMonsterUI() {
+  const m = gameState.currentMonster;
+  const spriteEl = document.getElementById('monster-sprite');
+  const nameEl = document.getElementById('monster-name');
+  const barEl = document.getElementById('monster-hp-bar');
+
+  if (!m) return;
+  spriteEl.innerHTML = m.sprite;
+  nameEl.innerText = `${m.name}`;
+
+  const pct = Math.max(0, (gameState.monsterHp / m.maxHp) * 100);
+  barEl.style.width = `${pct}%`;
+  if (pct > 50) {
+    barEl.className = "bg-emerald-500 h-full transition-all duration-200";
+  } else if (pct > 20) {
+    barEl.className = "bg-yellow-400 h-full transition-all duration-200";
+  } else {
+    barEl.className = "bg-red-500 h-full transition-all duration-200";
+  }
+}
+
+function setButtonsEnabled(enabled) {
+  const buttons = [
+    document.getElementById('btn-attack'),
+    document.getElementById('btn-magic'),
+    document.getElementById('btn-gira'),
+    document.getElementById('btn-escape')
+  ];
+  buttons.forEach(btn => {
+    btn.disabled = !enabled;
+  });
+}
+
+// ========================================================
+// バトル進行・ステージ管理
+// ========================================================
+function startStage(stageIdx) {
+  gameState.stageIndex = stageIdx;
+  const m = STAGES[stageIdx];
+  gameState.currentMonster = m;
+  gameState.monsterHp = m.maxHp;
+  gameState.isBusy = true;
+  setButtonsEnabled(false);
+
+  updateMonsterUI();
+  
+  const container = document.getElementById('monster-container');
+  container.classList.remove('anim-shake', 'anim-damage', 'anim-powerful');
+  container.style.opacity = '1';
+
+  logMessage(m.encounterMsg, () => {
+    gameState.isBusy = false;
+    setButtonsEnabled(true);
+  });
+}
+
+// プレイヤーコマンド処理
+function handlePlayerAction(action) {
+  if (gameState.isBusy || gameState.hero.hp <= 0 || gameState.monsterHp <= 0) return;
+  audio.init();
+  gameState.isBusy = true;
+  setButtonsEnabled(false);
+
+  const hero = gameState.hero;
+  const monster = gameState.currentMonster;
+  const container = document.getElementById('monster-container');
+
+  if (action === 'attack') {
+    const isCritical = Math.random() < 0.22;
+    let dmg = Math.max(2, hero.attack - monster.defense + Math.floor(Math.random() * 4) - 2);
+    if (isCritical) {
+      dmg = Math.floor(hero.attack * 1.65) + Math.floor(Math.random() * 5);
+      audio.playMagicSound();
+    } else {
+      audio.playAttackSound();
+    }
+
+    container.classList.add('anim-shake', 'anim-damage');
+    setTimeout(() => container.classList.remove('anim-shake', 'anim-damage'), 400);
+
+    gameState.monsterHp = Math.max(0, gameState.monsterHp - dmg);
+    updateMonsterUI();
+
+    const attackText = isCritical
+      ? `かいしんの いちげき！！\n${monster.name}に ${dmg}の ダメージを 与えた！`
+      : `${hero.name}の こうげき！\n${monster.name}に ${dmg}の ダメージを 与えた！`;
+
+    logMessage(attackText, () => {
+      checkBattleResolution();
+    });
+
+  } else if (action === 'heal') {
+    // ホイミ(3) or ベホイミ(6)
+    const cost = hero.hasAdvancedSpells ? 6 : 3;
+    const spellName = hero.hasAdvancedSpells ? "ベホイミ" : "ホイミ";
+
+    if (hero.mp < cost) {
+      audio.playTone(180, 'sawtooth', 0.15);
+      logMessage("ＭＰが たりない！", () => {
+        gameState.isBusy = false;
+        setButtonsEnabled(true);
+      });
+      return;
+    }
+
+    hero.mp -= cost;
+    let healVal = 0;
+    if (hero.hasAdvancedSpells) {
+      healVal = Math.floor(Math.random() * 16) + 50; // ベホイミ: 50〜65回復
+      audio.playBigHealSound();
+    } else {
+      healVal = Math.floor(Math.random() * 8) + 16;  // ホイミ: 16〜23回復
+      audio.playHealSound();
+    }
+    
+    hero.hp = Math.min(hero.maxHp, hero.hp + healVal);
+    updateHeroUI();
+
+    logMessage(`${hero.name}は ${spellName}を となえた！\nキズが いえ、ＨＰが ${healVal} かいふくした！`, () => {
+      setTimeout(enemyTurn, 700);
+    });
+
+  } else if (action === 'gira') {
+    // ギラ(4) or ベギラマ(8)
+    const cost = hero.hasAdvancedSpells ? 8 : 4;
+    const spellName = hero.hasAdvancedSpells ? "ベギラマ" : "ギラ";
+
+    if (hero.mp < cost) {
+      audio.playTone(180, 'sawtooth', 0.15);
+      logMessage("ＭＰが たりない！", () => {
+        gameState.isBusy = false;
+        setButtonsEnabled(true);
+      });
+      return;
+    }
+
+    hero.mp -= cost;
+    let spellDmg = 0;
+    if (hero.hasAdvancedSpells) {
+      // ベギラマ: 38〜48ダメージの大威力
+      spellDmg = Math.floor(Math.random() * 11) + 38;
+      audio.playBigMagicSound();
+      container.classList.add('anim-powerful', 'anim-shake');
+      setTimeout(() => container.classList.remove('anim-powerful', 'anim-shake'), 500);
+    } else {
+      // ギラ: 18〜24ダメージ
+      spellDmg = Math.floor(Math.random() * 7) + 18;
+      audio.playMagicSound();
+      container.classList.add('anim-damage');
+      setTimeout(() => container.classList.remove('anim-damage'), 400);
+    }
+
+    gameState.monsterHp = Math.max(0, gameState.monsterHp - spellDmg);
+    updateHeroUI();
+    updateMonsterUI();
+
+    const castText = hero.hasAdvancedSpells
+      ? `${hero.name}は ベギラマを となえた！\nごうおんとともに 激しい雷炎が ${monster.name}を つつむ！\n${spellDmg}の 甚大なダメージ！`
+      : `${hero.name}は ギラを となえた！\nせんこうが はしり ${monster.name}に ${spellDmg}の ダメージ！`;
+
+    logMessage(castText, () => {
+      checkBattleResolution();
+    });
+
+  } else if (action === 'escape') {
+    if (gameState.stageIndex === 2) {
+      logMessage("プレゼント大魔王の まえでは にげられない！", () => {
+        setTimeout(enemyTurn, 600);
+      });
+      return;
+    }
+    
+    if (Math.random() < 0.4) {
+      logMessage(`${hero.name}は 逃げ出した！\n…しかし バースデーの 準備のために 戻ってきた！`, () => {
+        setTimeout(() => {
+          startStage(gameState.stageIndex);
+        }, 800);
+      });
+    } else {
+      logMessage(`${hero.name}は 逃げ出そうとしたが 回り込まれてしまった！`, () => {
+        setTimeout(enemyTurn, 700);
+      });
+    }
+  }
+}
+
+// 敵の撃破判定または反撃
+function checkBattleResolution() {
+  if (gameState.monsterHp <= 0) {
+    setTimeout(handleMonsterDefeated, 700);
+  } else {
+    setTimeout(enemyTurn, 800);
+  }
+}
+
+// 敵のターン
+function enemyTurn() {
+  if (gameState.monsterHp <= 0 || gameState.hero.hp <= 0) return;
+  const m = gameState.currentMonster;
+  const h = gameState.hero;
+
+  let enemyDmg = Math.max(2, m.attack - h.defense + Math.floor(Math.random() * 3) - 1);
+  let enemyActionText = `${m.name}の こうげき！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
+
+  // ボスの特殊行動（クラッカー乱れ撃ち）
+  if (gameState.stageIndex === 2 && Math.random() < 0.4) {
+    enemyDmg += 7;
+    enemyActionText = `${m.name}の クラッカーれんだ！\nパーティーの いりょくで ${h.name}は ${enemyDmg}の 大ダメージ！`;
+  }
+
+  audio.playDamageSound();
+  h.hp = Math.max(0, h.hp - enemyDmg);
+  updateHeroUI();
+
+  document.body.classList.add('anim-shake');
+  setTimeout(() => document.body.classList.remove('anim-shake'), 300);
+
+  logMessage(enemyActionText, () => {
+    if (h.hp <= 0) {
+      setTimeout(handleGameOver, 700);
+    } else {
+      gameState.isBusy = false;
+      setButtonsEnabled(true);
+    }
+  });
+}
+
+// モンスター撃破処理＆アイテムドロップ
+function handleMonsterDefeated() {
+  const m = gameState.currentMonster;
+  audio.playFanfare();
+
+  const container = document.getElementById('monster-container');
+  container.style.opacity = '0';
+
+  gameState.inventory[m.dropItemKey] = true;
+  updateInventoryUI();
+
+  logMessage(`${m.name}を たおした！\n${m.dropMsg}`, () => {
+    setTimeout(() => {
+      if (gameState.stageIndex < STAGES.length - 1) {
+        levelUpHero();
+      } else {
+        triggerBirthdayCelebration();
+      }
+    }, 1400);
+  });
+}
+
+// レベルアップ（2匹目撃破でベホイミ＆ベギラマ習得！）
+function levelUpHero() {
+  const h = gameState.hero;
+  h.level += 1;
+
+  if (gameState.stageIndex === 1) {
+    // 2匹目の雑魚（ごちそうサウルス）撃破時：大幅強化＋呪文パワーアップ！
+    h.maxHp += 28;
+    h.hp = h.maxHp;
+    h.maxMp += 16;
+    h.mp = h.maxMp;
+    h.attack += 12;
+    h.defense += 6;
+    h.hasAdvancedSpells = true; // ベホイミ・ベギラマ解禁
+    
+    updateHeroUI();
+    audio.playPowerUpFanfare();
+
+    const powerUpText = `ファンファーレが ひびきわたる！\n${h.name}の レベルが ${h.level}に あがった！\nなんと 【ベホイミ】と 【ベギラマ】を おぼえた！\nＨＰと ＭＰが まんたんになった！`;
+
+    logMessage(powerUpText, () => {
+      setTimeout(() => {
+        startStage(gameState.stageIndex + 1);
+      }, 1800);
+    });
+
+  } else {
+    // 1匹目撃破時：通常のレベルアップ
+    h.maxHp += 16;
+    h.hp = h.maxHp;
+    h.maxMp += 8;
+    h.mp = h.maxMp;
+    h.attack += 7;
+    h.defense += 3;
+
+    updateHeroUI();
+    audio.playHealSound();
+
+    logMessage(`パララパッパッパー♪\n${h.name}の レベルが ${h.level}に あがった！\nＨＰと ＭＰが ぜんかいふくした！`, () => {
+      setTimeout(() => {
+        startStage(gameState.stageIndex + 1);
+      }, 1400);
+    });
+  }
+}
+
+// ゲームオーバー
+function handleGameOver() {
+  audio.playTone(80, 'sawtooth', 0.6, 0.3);
+  logMessage(`勇者 ${gameState.hero.name}は ちからつきてしまった……\n[もういちど コマンドをおすと さいしょから やりなおせます]`, () => {
+    gameState.isBusy = false;
+    const btnAttack = document.getElementById('btn-attack');
+    btnAttack.disabled = false;
+    btnAttack.innerHTML = '<span class="mr-1 text-yellow-400">▶</span>ふっかつ';
+    btnAttack.onclick = () => {
+      btnAttack.innerHTML = '<span class="mr-1 text-yellow-400">▶</span>こうげき';
+      btnAttack.onclick = () => handlePlayerAction('attack');
+      resetGame();
+    };
+  });
+}
+
+// ========================================================
+// バースデーエンディング＆紙吹雪パーティクル
+// ========================================================
+let confettiParticles = [];
+let confettiAnimationId = null;
+
+function triggerBirthdayCelebration() {
+  audio.playHappyBirthdayMelody();
+
+  const overlay = document.getElementById('celebration-overlay');
+  overlay.classList.remove('hidden');
+
+  const msgBox = document.getElementById('birthday-custom-msg');
+  msgBox.innerText = `🎂 ${gameState.hero.name}さん おたんじょうび おめでとうございます！ 🎂\n${gameState.customBirthdayMsg}\nケーキ・ごちそう・プレゼントが すべてそろい、さいこうの バースデーが はじまる！`;
+
+  logMessage(`★ おめでとう！！ ★\n${gameState.hero.name}は プレゼント大魔王を たおし、世界に たのしい たんじょうびを とりもどした！`, () => {
+    gameState.isBusy = false;
+  });
+
+  startConfetti();
+}
+
+function startConfetti() {
+  const canvas = document.getElementById('confetti-canvas');
+  const ctx = canvas.getContext('2d');
+  
+  function resize() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  resize();
+  window.addEventListener('resize', resize);
+
+  const colors = ['#f43f5e', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', '#ec4899', '#ffffff'];
+  confettiParticles = Array.from({ length: 90 }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height - canvas.height,
+    size: Math.random() * 8 + 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    speedY: Math.random() * 3 + 2.2,
+    speedX: Math.random() * 2 - 1,
+    rotation: Math.random() * 360,
+    rotSpeed: Math.random() * 4 - 2
+  }));
+
+  function update() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    confettiParticles.forEach(p => {
+      p.y += p.speedY;
+      p.x += Math.sin(p.y * 0.02) + p.speedX;
+      p.rotation += p.rotSpeed;
+
+      if (p.y > canvas.height) {
+        p.y = -10;
+        p.x = Math.random() * canvas.width;
+      }
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate((p.rotation * Math.PI) / 180);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.7);
+      ctx.restore();
+    });
+    confettiAnimationId = requestAnimationFrame(update);
+  }
+  update();
+}
+
+function stopConfetti() {
+  if (confettiAnimationId) {
+    cancelAnimationFrame(confettiAnimationId);
+    confettiAnimationId = null;
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+}
+
+// ========================================================
+// リセットと初期化
+// ========================================================
+function resetGame() {
+  stopConfetti();
+  audio.stopMelody();
+  document.getElementById('celebration-overlay').classList.add('hidden');
+
+  gameState.hero = {
+    name: gameState.hero.name || "バースデー",
+    level: 1,
+    hp: 34,
+    maxHp: 34,
+    mp: 14,
+    maxMp: 14,
+    attack: 14,
+    defense: 6,
+    hasAdvancedSpells: false
+  };
+  gameState.inventory = {
+    cake: false,
+    feast: false,
+    present: false
+  };
+
+  updateHeroUI();
+  updateInventoryUI();
+  startStage(0);
+}
+
+window.onload = function() {
+  document.getElementById('btn-attack').addEventListener('click', () => handlePlayerAction('attack'));
+  document.getElementById('btn-magic').addEventListener('click', () => handlePlayerAction('heal'));
+  document.getElementById('btn-gira').addEventListener('click', () => handlePlayerAction('gira'));
+  document.getElementById('btn-escape').addEventListener('click', () => handlePlayerAction('escape'));
+
+  document.getElementById('restart-btn').addEventListener('click', () => {
+    resetGame();
+  });
+
+  document.getElementById('sound-toggle-btn').addEventListener('click', (e) => {
+    const isMuted = audio.toggleMute();
+    e.target.innerText = isMuted ? '🔊 SOUND: ON' : '🔇 SOUND: OFF';
+  });
+
+  document.getElementById('msg-box').addEventListener('click', () => {
+    if (gameState.typingTimer) {
+      clearTimeout(gameState.typingTimer);
+      gameState.typingTimer = null;
+    }
+  });
+
+  const modal = document.getElementById('modal-backdrop');
+  const nameInput = document.getElementById('input-hero-name');
+  const msgInput = document.getElementById('input-bday-msg');
+  const modalTitle = document.getElementById('modal-title');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const modalSubmitBtn = document.getElementById('modal-submit-btn');
+
+  // ゲーム中の名前変更ボタン
+  document.getElementById('rename-btn').addEventListener('click', () => {
+    modalTitle.innerText = "勇者としゅくふくの設定";
+    document.getElementById('modal-prologue-preview').classList.add('hidden');
+    nameInput.value = gameState.hero.name;
+    msgInput.value = gameState.customBirthdayMsg;
+    modalCloseBtn.classList.remove('hidden');
+    modalSubmitBtn.classList.remove('w-full');
+    modalSubmitBtn.innerText = "決定する";
+    modal.classList.remove('hidden');
+  });
+
+  // キャンセルボタン（変更時のみ）
+  modalCloseBtn.addEventListener('click', () => {
+    modal.classList.add('hidden');
+  });
+
+  // 決定・開始ボタン
+  modalSubmitBtn.addEventListener('click', () => {
+    const newName = nameInput.value.trim() || "バースデー";
+    const newMsg = msgInput.value.trim() || "すてきな １ねんに なりますように！";
+    gameState.hero.name = newName;
+    gameState.customBirthdayMsg = newMsg;
+    updateHeroUI();
+    modal.classList.add('hidden');
+
+    // まだ開始していない場合はプロローグを流してからスタート
+    if (!gameState.isGameStarted) {
+      gameState.isGameStarted = true;
+      audio.playPowerUpFanfare();
+      
+      const prologueStory = 
+        `きょうは ${newName}の とくべつな たんじょうび！\n` +
+        `しかし パーティーに ひつような ３つの宝物が\n` +
+        `わるい魔物たちに うばわれてしまった…！\n\n` +
+        `${newName}は 宝をとりもどすため、冒険の旅にでた！`;
+
+      gameState.isBusy = true;
+      setButtonsEnabled(false);
+      logMessage(prologueStory, () => {
+        const hint = document.getElementById('continue-hint');
+        hint.classList.remove('hidden');
+        
+        const proceedToFirstBattle = () => {
+          document.getElementById('msg-box').removeEventListener('click', proceedToFirstBattle);
+          hint.classList.add('hidden');
+          startStage(0);
+        };
+        
+        document.getElementById('msg-box').addEventListener('click', proceedToFirstBattle);
+        // クリックしなくても2.8秒後に自動で第1戦へ移行
+        setTimeout(() => {
+          proceedToFirstBattle();
+        }, 2800);
+      });
+    }
+  });
+
+  // 初期ステータス表示の更新（開始前）
+  updateHeroUI();
+  updateInventoryUI();
+  logMessage("あなたの なまえを 入力してください…");
+};
+</script>
+</body>
+</html>
