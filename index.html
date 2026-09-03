@@ -121,7 +121,40 @@
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-x-hidden">
 <canvas id="confetti-canvas"></canvas>
 
-<div class="w-full max-w-lg flex flex-col gap-3 relative z-10">
+<!-- タイトル＆名前入力画面（初期表示：名前決めだけ） -->
+<div id="start-screen" class="w-full max-w-sm flex flex-col gap-4 relative z-20">
+  <div class="dq-window p-5 flex flex-col gap-4">
+    <div class="text-center border-b border-white/30 pb-3">
+      <div class="text-xs text-yellow-300 tracking-widest mb-1.5 font-bold">⚔️ BIRTHDAY QUEST I ⚔️</div>
+      <h2 class="text-white text-base sm:text-lg font-bold">あなたのなまえを 入力してください</h2>
+    </div>
+
+    <div>
+      <label class="text-xs text-gray-300 block mb-1.5 font-bold">あなたの なまえ：</label>
+      <input type="text" id="input-hero-name" maxlength="10" placeholder="aya" value="aya" class="w-full bg-black border-2 border-white p-2.5 text-base text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold rounded" />
+    </div>
+
+    <button id="start-adventure-btn" class="w-full py-3 mt-1 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm tracking-wider transition active:scale-95 rounded">
+      ▶ ぼうけんを はじめる！
+    </button>
+  </div>
+</div>
+
+<!-- プロローグ画面（冒険をはじめるボタン押下後に表示） -->
+<div id="prologue-screen" class="hidden w-full max-w-md flex flex-col gap-4 relative z-20">
+  <div class="dq-window p-5 flex flex-col justify-between min-h-[220px] cursor-pointer" id="prologue-box">
+    <div class="text-xs text-yellow-300 font-bold border-b border-white/20 pb-2 mb-3">
+      📜 はじまりのものがたり
+    </div>
+    <div id="prologue-text" class="text-sm sm:text-base leading-relaxed text-gray-100 whitespace-pre-wrap"></div>
+    <div class="text-right text-xs text-yellow-300 mt-4 h-5">
+      <span id="prologue-continue-hint" class="hidden cursor-blink font-bold">ぼうけんへ 出発する！</span>
+    </div>
+  </div>
+</div>
+
+<!-- メインゲーム画面（プロローグ終了後に表示） -->
+<div id="game-container" class="hidden w-full max-w-lg flex flex-col gap-3 relative z-10">
 
   <!-- ヘッダー：タイトルと音量 -->
   <div class="flex items-center justify-between px-2 text-xs sm:text-sm text-yellow-300">
@@ -240,33 +273,24 @@
   </div>
 </div>
 
-<!-- 設定モーダル（初回スタート画面 兼 名前変更） -->
-<div id="modal-backdrop" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
+<!-- 設定モーダル（ゲーム中の名前変更用） -->
+<div id="modal-backdrop" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
   <div class="dq-window w-full max-w-sm p-4 sm:p-5 flex flex-col gap-3">
     <div class="text-center border-b border-white/30 pb-2">
-      <div class="text-[11px] text-yellow-300 tracking-widest mb-1">⚔️ BIRTHDAY QUEST ⚔️</div>
-      <h3 id="modal-title" class="text-white text-sm sm:text-base font-bold">あなたのなまえを 入力してください</h3>
+      <h3 class="text-white text-sm sm:text-base font-bold">勇者としゅくふくの設定</h3>
     </div>
-
-    <!-- ストーリーあらすじ案内 -->
-    <div id="modal-prologue-preview" class="text-xs text-yellow-200/90 bg-neutral-900/80 border border-white/20 p-2.5 rounded leading-relaxed">
-      きょうは あなたの 特別な誕生日。<br>
-      しかし パーティーに必要な大切な宝が 魔物たちに奪われてしまった！<br>
-      宝を取り戻し、最高の誕生日を迎えるため 冒険へ旅立とう！
-    </div>
-
     <div>
       <label class="text-xs text-gray-300 block mb-1">あなたの なまえ：</label>
-      <input type="text" id="input-hero-name" maxlength="10" placeholder="例：たろう、バースデー" value="バースデー" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold" />
+      <input type="text" id="modal-hero-name" maxlength="10" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold" />
     </div>
     <div>
       <label class="text-xs text-gray-300 block mb-1">お祝いメッセージ：</label>
-      <input type="text" id="input-bday-msg" maxlength="40" value="すてきな １ねんに なりますように！" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400" />
+      <input type="text" id="modal-bday-msg" maxlength="40" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400" />
     </div>
     <div class="flex justify-end gap-2 mt-2">
-      <button id="modal-close-btn" class="hidden px-3 py-1.5 border border-white text-xs hover:bg-white/10">キャンセル</button>
-      <button id="modal-submit-btn" class="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs sm:text-sm tracking-wider transition active:scale-95">
-        ▶ ぼうけんを はじめる！
+      <button id="modal-close-btn" class="px-3 py-1.5 border border-white text-xs hover:bg-white/10">キャンセル</button>
+      <button id="modal-save-btn" class="px-4 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs tracking-wider transition">
+        決定する
       </button>
     </div>
   </div>
@@ -643,7 +667,7 @@ const STAGES = [
 
 let gameState = {
   hero: {
-    name: "バースデー",
+    name: "aya",
     level: 1,
     hp: 34,
     maxHp: 34,
@@ -759,6 +783,60 @@ function updateInventoryUI() {
   }
 
   document.getElementById('items-collected-count').innerText = `${count} / 3 個`;
+}
+
+// プロローグ専用のタイピング表示
+let prologueTimer = null;
+function showPrologue(heroName, onComplete) {
+  const prologueScreen = document.getElementById('prologue-screen');
+  const prologueTextEl = document.getElementById('prologue-text');
+  const hintEl = document.getElementById('prologue-continue-hint');
+
+  prologueScreen.classList.remove('hidden');
+  prologueTextEl.innerText = "";
+  hintEl.classList.add('hidden');
+
+  const story = 
+    `きょうは ${heroName}の 特別な誕生日。\n\n` +
+    `しかし、誕生日パーティーに必要な\n` +
+    `大切な宝物が 魔物たちに奪われてしまった！\n\n` +
+    `${heroName}は 宝を取り戻し、最高の誕生日を\n` +
+    `迎えるため 冒険の旅へ出た！`;
+
+  let i = 0;
+  let isDone = false;
+
+  function finishTyping() {
+    if (isDone) return;
+    isDone = true;
+    if (prologueTimer) clearTimeout(prologueTimer);
+    prologueTextEl.innerText = story;
+    hintEl.classList.remove('hidden');
+  }
+
+  function typeChar() {
+    if (i < story.length) {
+      prologueTextEl.innerText += story.charAt(i);
+      i++;
+      prologueTimer = setTimeout(typeChar, 28);
+    } else {
+      finishTyping();
+    }
+  }
+
+  typeChar();
+
+  const clickHandler = () => {
+    if (!isDone) {
+      finishTyping();
+    } else {
+      document.getElementById('prologue-box').removeEventListener('click', clickHandler);
+      prologueScreen.classList.add('hidden');
+      onComplete();
+    }
+  };
+
+  document.getElementById('prologue-box').addEventListener('click', clickHandler);
 }
 
 function updateMonsterUI() {
@@ -1160,7 +1238,7 @@ function resetGame() {
   document.getElementById('celebration-overlay').classList.add('hidden');
 
   gameState.hero = {
-    name: gameState.hero.name || "バースデー",
+    name: gameState.hero.name || "aya",
     level: 1,
     hp: 34,
     maxHp: 34,
@@ -1203,75 +1281,50 @@ window.onload = function() {
     }
   });
 
-  const modal = document.getElementById('modal-backdrop');
+  // 初回スタートボタン（名前決定 ➔ プロローグ表示）
+  const startBtn = document.getElementById('start-adventure-btn');
   const nameInput = document.getElementById('input-hero-name');
-  const msgInput = document.getElementById('input-bday-msg');
-  const modalTitle = document.getElementById('modal-title');
-  const modalCloseBtn = document.getElementById('modal-close-btn');
-  const modalSubmitBtn = document.getElementById('modal-submit-btn');
 
-  // ゲーム中の名前変更ボタン
+  startBtn.addEventListener('click', () => {
+    audio.init();
+    const heroName = nameInput.value.trim() || "aya";
+
+    gameState.hero.name = heroName;
+    updateHeroUI();
+
+    // 名前決め画面を非表示にする
+    document.getElementById('start-screen').classList.add('hidden');
+    audio.playPowerUpFanfare();
+
+    // プロローグ表示画面へ
+    showPrologue(heroName, () => {
+      // プロローグ終了後にバトル画面を表示＆第1戦スタート
+      document.getElementById('game-container').classList.remove('hidden');
+      startStage(0);
+    });
+  });
+
+  // ゲームプレイ中の名前変更モーダル処理
+  const modal = document.getElementById('modal-backdrop');
+  const modalHeroName = document.getElementById('modal-hero-name');
+  const modalBdayMsg = document.getElementById('modal-bday-msg');
+
   document.getElementById('rename-btn').addEventListener('click', () => {
-    modalTitle.innerText = "勇者としゅくふくの設定";
-    document.getElementById('modal-prologue-preview').classList.add('hidden');
-    nameInput.value = gameState.hero.name;
-    msgInput.value = gameState.customBirthdayMsg;
-    modalCloseBtn.classList.remove('hidden');
-    modalSubmitBtn.classList.remove('w-full');
-    modalSubmitBtn.innerText = "決定する";
+    modalHeroName.value = gameState.hero.name;
+    modalBdayMsg.value = gameState.customBirthdayMsg;
     modal.classList.remove('hidden');
   });
 
-  // キャンセルボタン（変更時のみ）
-  modalCloseBtn.addEventListener('click', () => {
+  document.getElementById('modal-close-btn').addEventListener('click', () => {
     modal.classList.add('hidden');
   });
 
-  // 決定・開始ボタン
-  modalSubmitBtn.addEventListener('click', () => {
-    const newName = nameInput.value.trim() || "バースデー";
-    const newMsg = msgInput.value.trim() || "すてきな １ねんに なりますように！";
-    gameState.hero.name = newName;
-    gameState.customBirthdayMsg = newMsg;
+  document.getElementById('modal-save-btn').addEventListener('click', () => {
+    gameState.hero.name = modalHeroName.value.trim() || "aya";
+    gameState.customBirthdayMsg = modalBdayMsg.value.trim() || "すてきな １ねんに なりますように！";
     updateHeroUI();
     modal.classList.add('hidden');
-
-    // まだ開始していない場合はプロローグを流してからスタート
-    if (!gameState.isGameStarted) {
-      gameState.isGameStarted = true;
-      audio.playPowerUpFanfare();
-      
-      const prologueStory = 
-        `きょうは ${newName}の とくべつな たんじょうび！\n` +
-        `しかし パーティーに ひつような ３つの宝物が\n` +
-        `わるい魔物たちに うばわれてしまった…！\n\n` +
-        `${newName}は 宝をとりもどすため、冒険の旅にでた！`;
-
-      gameState.isBusy = true;
-      setButtonsEnabled(false);
-      logMessage(prologueStory, () => {
-        const hint = document.getElementById('continue-hint');
-        hint.classList.remove('hidden');
-        
-        const proceedToFirstBattle = () => {
-          document.getElementById('msg-box').removeEventListener('click', proceedToFirstBattle);
-          hint.classList.add('hidden');
-          startStage(0);
-        };
-        
-        document.getElementById('msg-box').addEventListener('click', proceedToFirstBattle);
-        // クリックしなくても2.8秒後に自動で第1戦へ移行
-        setTimeout(() => {
-          proceedToFirstBattle();
-        }, 2800);
-      });
-    }
   });
-
-  // 初期ステータス表示の更新（開始前）
-  updateHeroUI();
-  updateInventoryUI();
-  logMessage("あなたの なまえを 入力してください…");
 };
 </script>
 </body>
