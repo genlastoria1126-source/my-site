@@ -231,16 +231,16 @@
   </div>
 
   <!-- モンスター出現ウィンドウ -->
-  <div class="dq-window h-56 sm:h-64 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-black">
+  <div class="dq-window h-60 sm:h-72 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-black">
     <!-- 戦闘背景エフェクト -->
     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
     <!-- 敵表示 -->
-    <div id="monster-container" class="flex flex-col items-center justify-center anim-idle z-10 transition-transform">
-      <div id="monster-sprite" class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]">
+    <div id="monster-container" class="flex flex-col items-center justify-center anim-idle z-10 transition-all duration-500">
+      <div id="monster-sprite" class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] transition-all duration-500">
       </div>
       <div id="monster-name" class="mt-2 text-base sm:text-lg tracking-wider text-yellow-300 font-bold">
-        ショートスライム
+        ケーキスライム
       </div>
       <div class="w-28 sm:w-36 bg-neutral-900 border border-white/40 h-2 rounded mt-1 overflow-hidden">
         <div id="monster-hp-bar" class="bg-red-500 h-full w-full transition-all duration-300"></div>
@@ -411,7 +411,6 @@ class ChiptuneAudio {
     [1046, 880, 1318, 987, 1568, 1174, 1760, 2093, 260].forEach((f, i) => {
       this.playTone(f, 'sawtooth', 0.1, 0.16, i * 0.03);
     });
-    // 轟く低音
     this.playTone(85, 'square', 0.45, 0.25, 0.2);
   }
 
@@ -508,13 +507,9 @@ class ChiptuneAudio {
 
     const beat = 0.45;
     const melody = [
-      // Hap-py Birth-day to you
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 2.0 },
-      // Hap-py Birth-day to you
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.0 },
-      // Hap-py Birth-day dear (Hero)
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: G5, d: 1.0 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 1.0 }, { f: A4, d: 1.5 },
-      // Hap-py Birth-day to you!
       { f: F5, d: 0.75 }, { f: F5, d: 0.25 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.5 }
     ];
 
@@ -549,10 +544,29 @@ class ChiptuneAudio {
 const audio = new ChiptuneAudio();
 
 // ========================================================
+// プレゼント大魔王のユニークな攻撃パターンリスト
+// ========================================================
+const DAIMAO_ATTACKS = [
+  "キリンがさかだちしたピアス",
+  "フラッグチェックのハンチング",
+  "ユニオンジャックのランニング",
+  "丸いレンズのサングラス",
+  "オレンジ色のハイヒール",
+  "白い真珠のネックレス",
+  "緑色した細い傘",
+  "シャガールみたいな青い夜",
+  "グレイス・ケリーの映画の券",
+  "ヴィヴィアン・リーのプロマイド",
+  "バディー・ホリーのドーナツ盤",
+  "ヘップバーンの写真集",
+  "お菓子のつまった赤い靴"
+];
+
+// ========================================================
 // ゲームデータ定義（3連戦＋真ボス：ケーキ → ごちそう → プレゼント魔王 → プレゼント大魔王）
 // ========================================================
 const MONSTER_SVGS = {
-  // 1. ショートスライム
+  // 1. ケーキスライム
   slime: `
     <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
       <path d="M50 16 C30 16 16 42 16 64 C16 82 30 92 50 92 C70 92 84 82 84 64 C84 42 70 16 50 16 Z" fill="#0284c7" stroke="#082f49" stroke-width="2.5"/>
@@ -577,7 +591,7 @@ const MONSTER_SVGS = {
     </svg>
   `,
 
-  // 2. ごちそうサウルス
+  // 2. はらぺこサウルス
   dino: `
     <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_166px_rgba(22,163,74,0.6)]">
       <path d="M22 68 Q10 75 8 85 Q16 86 28 78 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
@@ -645,47 +659,49 @@ const MONSTER_SVGS = {
     </svg>
   `,
 
-  // 4. 第2形態：プレゼント大魔王（真の姿：燃え盛る金紅の邪神オーラと4本角）
+  // 4. 第2形態：プレゼント大魔王（真の姿：燃え盛る金紅の邪神オーラと4本角・巨大迫力仕様）
   demon2: `
-    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_30px_rgba(239,68,68,0.95)]">
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_35px_rgba(239,68,68,1)]">
       <!-- 禍々しい真・魔法陣オーラ -->
-      <circle cx="50" cy="46" r="44" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-dasharray="6 3">
-        <animateTransform attributeName="transform" type="rotate" from="0 50 46" to="360 50 46" dur="6s" repeatCount="indefinite"/>
+      <circle cx="50" cy="46" r="46" fill="none" stroke="#ef4444" stroke-width="2.8" stroke-dasharray="6 3">
+        <animateTransform attributeName="transform" type="rotate" from="0 50 46" to="360 50 46" dur="5s" repeatCount="indefinite"/>
       </circle>
-      <circle cx="50" cy="46" r="36" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3"/>
+      <circle cx="50" cy="46" r="38" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="4 2">
+        <animateTransform attributeName="transform" type="rotate" from="360 50 46" to="0 50 46" dur="7s" repeatCount="indefinite"/>
+      </circle>
       <!-- 巨大化・凶悪化した真・悪魔翼 -->
-      <path d="M26 44 Q2 18 1 48 Q14 52 22 64 Q18 48 30 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
-      <path d="M74 44 Q98 18 99 48 Q86 52 78 64 Q82 48 70 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
+      <path d="M26 44 Q1 16 0 48 Q14 53 22 64 Q18 48 30 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
+      <path d="M74 44 Q99 16 100 48 Q86 53 78 64 Q82 48 70 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
       <!-- 大魔王の頭部・深紅と暗黒の肌 -->
-      <path d="M50 16 C34 16 30 32 30 44 C30 58 40 64 50 64 C60 64 70 58 70 44 C70 32 66 16 50 16 Z" fill="#581c87" stroke="#3b0764" stroke-width="3"/>
+      <path d="M50 15 C33 15 28 32 28 44 C28 58 39 65 50 65 C61 65 72 58 72 44 C72 32 67 15 50 15 Z" fill="#4a044e" stroke="#2e1065" stroke-width="3"/>
       <!-- 禍々しい4本の角 -->
-      <path d="M36 24 Q14 8 16 -2 Q28 10 40 18 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2"/>
-      <path d="M64 24 Q86 8 84 -2 Q72 10 60 18 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2"/>
-      <path d="M32 32 Q10 28 14 18 Q25 24 35 28 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
-      <path d="M68 32 Q90 28 86 18 Q75 24 65 28 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
+      <path d="M36 23 Q12 6 15 -4 Q27 8 40 17 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2.2"/>
+      <path d="M64 23 Q88 6 85 -4 Q73 8 60 17 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2.2"/>
+      <path d="M31 31 Q8 27 12 16 Q24 23 34 27 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/>
+      <path d="M69 31 Q92 27 88 16 Q76 23 66 27 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/>
       <!-- 黄金の覇王冠 -->
-      <polygon points="38,17 43,6 50,13 57,6 62,17" fill="#fbbf24" stroke="#78350f" stroke-width="1.8"/>
-      <circle cx="50" cy="13" r="3" fill="#dc2626"/>
+      <polygon points="37,16 42,4 50,12 58,4 63,16" fill="#fbbf24" stroke="#78350f" stroke-width="2"/>
+      <circle cx="50" cy="12" r="3.2" fill="#dc2626"/>
       <!-- 燃え盛る金赤の眼光 -->
-      <polygon points="36,34 47,37 38,44" fill="#ef4444"/>
-      <circle cx="42" cy="38" r="2.2" fill="#ffffff"/>
-      <polygon points="64,34 53,37 62,44" fill="#ef4444"/>
-      <circle cx="58" cy="38" r="2.2" fill="#ffffff"/>
+      <polygon points="35,33 47,37 37,44" fill="#ef4444"/>
+      <circle cx="42" cy="38" r="2.5" fill="#ffffff"/>
+      <polygon points="65,33 53,37 63,44" fill="#ef4444"/>
+      <circle cx="58" cy="38" r="2.5" fill="#ffffff"/>
       <!-- 巨大な裂けた口と禍々しい牙 -->
-      <path d="M38 50 Q50 64 62 50 Q50 68 38 50 Z" fill="#450a0a" stroke="#000000" stroke-width="1.5"/>
-      <polygon points="41,50 44,56 47,50" fill="#ffffff"/>
-      <polygon points="49,50 52,57 55,50" fill="#ffffff"/>
-      <polygon points="57,50 60,56 63,50" fill="#ffffff"/>
+      <path d="M37 49 Q50 65 63 49 Q50 70 37 49 Z" fill="#450a0a" stroke="#000000" stroke-width="1.8"/>
+      <polygon points="40,49 43,56 46,49" fill="#ffffff"/>
+      <polygon points="48,49 51,57 54,49" fill="#ffffff"/>
+      <polygon points="56,49 59,56 62,49" fill="#ffffff"/>
       <!-- 黄金の真・宝箱トラップボディ -->
-      <rect x="20" y="64" width="60" height="32" rx="4" fill="#7f1d1d" stroke="#f59e0b" stroke-width="3"/>
-      <rect x="46" y="64" width="8" height="32" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
-      <rect x="20" y="78" width="60" height="7" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
-      <polygon points="16,64 84,64 78,57 22,57" fill="#450a0a" stroke="#f59e0b" stroke-width="2"/>
+      <rect x="18" y="64" width="64" height="33" rx="4" fill="#7f1d1d" stroke="#f59e0b" stroke-width="3"/>
+      <rect x="46" y="64" width="8" height="33" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+      <rect x="18" y="78" width="64" height="7" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
+      <polygon points="14,64 86,64 80,56 20,56" fill="#450a0a" stroke="#f59e0b" stroke-width="2"/>
       <!-- 鋭利な金色の牙列 -->
-      <polygon points="24,64 29,59 34,64" fill="#fef08a"/>
-      <polygon points="38,64 43,58 48,64" fill="#fef08a"/>
-      <polygon points="52,64 57,58 62,64" fill="#fef08a"/>
-      <polygon points="66,64 71,59 76,64" fill="#fef08a"/>
+      <polygon points="22,64 27,58 32,64" fill="#fef08a"/>
+      <polygon points="36,64 41,57 46,64" fill="#fef08a"/>
+      <polygon points="54,64 59,57 64,64" fill="#fef08a"/>
+      <polygon points="68,64 73,58 78,64" fill="#fef08a"/>
     </svg>
   `
 };
@@ -693,7 +709,7 @@ const MONSTER_SVGS = {
 const STAGES = [
   {
     id: 1,
-    name: "ショートスライム",
+    name: "ケーキスライム",
     title: "ケーキの まもの",
     sprite: MONSTER_SVGS.slime,
     maxHp: 26,
@@ -701,12 +717,12 @@ const STAGES = [
     defense: 4,
     dropItemKey: "cake",
     dropItemName: "バースデーケーキ 🎂",
-    encounterMsg: "甘い香りと共に ショートスライムが あらわれた！",
-    dropMsg: "ショートスライムは たからばこを おとしていった！\nなんと 【バースデーケーキ】を てにいれた！"
+    encounterMsg: "甘い香りと共に ケーキスライムが あらわれた！",
+    dropMsg: "ケーキスライムは たからばこを おとしていった！\nなんと 【バースデーケーキ】を てにいれた！"
   },
   {
     id: 2,
-    name: "ごちそうサウルス",
+    name: "はらぺこサウルス",
     title: "パーティーの ごちそう",
     sprite: MONSTER_SVGS.dino,
     maxHp: 48,
@@ -714,8 +730,8 @@ const STAGES = [
     defense: 7,
     dropItemKey: "feast",
     dropItemName: "ごうかなごちそう 🍗🍕",
-    encounterMsg: "おいしそうな におい！ ごちそうサウルスが あらわれた！",
-    dropMsg: "ごちそうサウルスを たおした！\nおいしそうな 【ごちそう】を てにいれた！"
+    encounterMsg: "おいしそうな におい！ はらぺこサウルスが あらわれた！",
+    dropMsg: "はらぺこサウルスを たおした！\nおいしそうな 【ごちそう】を てにいれた！"
   },
   {
     id: 3,
@@ -734,10 +750,11 @@ const STAGES = [
     name: "プレゼント大魔王",
     title: "バースデーの 大ボス（真の姿）",
     sprite: MONSTER_SVGS.demon2,
-    maxHp: 143, // 1回目(95)の約1.5倍
-    attack: 35, // 1回目(23)の約1.5倍
-    defense: 18, // 1回目(12)の1.5倍
-    isDoubleAction: true, // ２回行動！
+    maxHp: 143,
+    attack: 35,
+    defense: 18,
+    isDoubleAction: true,
+    isGiant: true,
     dropItemKey: "present",
     dropItemName: "最高のプレゼント 🎁✨",
     encounterMsg: "まばゆい邪光とともに プレゼント大魔王が 襲いかかってきた！",
@@ -755,7 +772,7 @@ let gameState = {
     maxMp: 14,
     attack: 14,
     defense: 6,
-    spellTier: 1 // 1: ホイミ/ギラ, 2: ベホイミ/ベギラマ, 3: ベホイム/ギガデイン
+    spellTier: 1
   },
   stageIndex: 0,
   currentMonster: null,
@@ -811,14 +828,12 @@ function updateHeroUI() {
   document.getElementById('hero-atk').innerText = h.attack;
   document.getElementById('hero-def').innerText = h.defense;
 
-  // 呪文の進化段階に応じたコマンドボタン更新
   const magicTextEl = document.getElementById('magic-text');
   const magicCursorEl = document.getElementById('magic-cursor');
   const giraTextEl = document.getElementById('gira-text');
   const giraCursorEl = document.getElementById('gira-cursor');
 
   if (h.spellTier === 3) {
-    // ベホイム ＆ ギガデイン
     magicTextEl.innerText = "ベホイム(10)";
     magicTextEl.className = "text-emerald-300 font-bold";
     magicCursorEl.className = "mr-1 text-emerald-400";
@@ -827,7 +842,6 @@ function updateHeroUI() {
     giraTextEl.className = "text-purple-300 font-bold";
     giraCursorEl.className = "mr-1 text-purple-400";
   } else if (h.spellTier === 2) {
-    // ベホイミ ＆ ベギラマ
     magicTextEl.innerText = "ベホイミ(6)";
     magicTextEl.className = "text-emerald-300 font-bold";
     magicCursorEl.className = "mr-1 text-emerald-400";
@@ -836,7 +850,6 @@ function updateHeroUI() {
     giraTextEl.className = "text-amber-300 font-bold";
     giraCursorEl.className = "mr-1 text-amber-400";
   } else {
-    // ホイミ ＆ ギラ
     magicTextEl.innerText = "ホイミ(3)";
     magicTextEl.className = "";
     magicCursorEl.className = "mr-1 text-sky-400";
@@ -940,6 +953,13 @@ function updateMonsterUI() {
   spriteEl.innerHTML = m.sprite;
   nameEl.innerText = `${m.name}`;
 
+  // 大魔王のときは威圧感を出すためサイズを巨大化
+  if (m.isGiant) {
+    spriteEl.className = "w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center select-none filter drop-shadow-[0_12px_24px_rgba(239,68,68,0.9)] scale-110 sm:scale-125 transition-all duration-500";
+  } else {
+    spriteEl.className = "w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] transition-all duration-500";
+  }
+
   const pct = Math.max(0, (gameState.monsterHp / m.maxHp) * 100);
   barEl.style.width = `${pct}%`;
   if (pct > 50) {
@@ -1022,7 +1042,6 @@ function handlePlayerAction(action) {
     });
 
   } else if (action === 'heal') {
-    // ホイミ(3) or ベホイミ(6) or ベホイム(10)
     let cost = 3;
     let spellName = "ホイミ";
 
@@ -1046,13 +1065,13 @@ function handlePlayerAction(action) {
     hero.mp -= cost;
     let healVal = 0;
     if (hero.spellTier === 3) {
-      healVal = Math.floor(Math.random() * 21) + 85; // ベホイム: 85〜105回復（ほぼ全回復）
+      healVal = Math.floor(Math.random() * 21) + 85;
       audio.playUltimateHealSound();
     } else if (hero.spellTier === 2) {
-      healVal = Math.floor(Math.random() * 16) + 50; // ベホイミ: 50〜65回復
+      healVal = Math.floor(Math.random() * 16) + 50;
       audio.playBigHealSound();
     } else {
-      healVal = Math.floor(Math.random() * 8) + 16;  // ホイミ: 16〜23回復
+      healVal = Math.floor(Math.random() * 8) + 16;
       audio.playHealSound();
     }
     
@@ -1064,7 +1083,6 @@ function handlePlayerAction(action) {
     });
 
   } else if (action === 'gira') {
-    // ギラ(4) or ベギラマ(8) or ギガデイン(14)
     let cost = 4;
     let spellName = "ギラ";
 
@@ -1090,21 +1108,18 @@ function handlePlayerAction(action) {
     let castText = "";
 
     if (hero.spellTier === 3) {
-      // ギガデイン: 75〜90ダメージの絶大なる雷撃
       spellDmg = Math.floor(Math.random() * 16) + 75;
       audio.playGigadeinSound();
       container.classList.add('anim-gigadein', 'anim-shake');
       setTimeout(() => container.classList.remove('anim-gigadein', 'anim-shake'), 650);
       castText = `${hero.name}は ギガデインを となえた！\n天を裂く 神聖な雷光が ${monster.name}を 撃ち砕く！！\n${spellDmg}の 絶大なダメージ！`;
     } else if (hero.spellTier === 2) {
-      // ベギラマ: 38〜48ダメージ
       spellDmg = Math.floor(Math.random() * 11) + 38;
       audio.playBigMagicSound();
       container.classList.add('anim-powerful', 'anim-shake');
       setTimeout(() => container.classList.remove('anim-powerful', 'anim-shake'), 500);
       castText = `${hero.name}は ベギラマを となえた！\nごうおんとともに 激しい雷炎が ${monster.name}を つつむ！\n${spellDmg}の 甚大なダメージ！`;
     } else {
-      // ギラ: 18〜24ダメージ
       spellDmg = Math.floor(Math.random() * 7) + 18;
       audio.playMagicSound();
       container.classList.add('anim-damage');
@@ -1151,7 +1166,7 @@ function checkBattleResolution() {
   }
 }
 
-// 敵のターン（大魔王は２回行動、メッセージは「〇〇回目の行動」なしでシンプルに表示）
+// 敵のターン（大魔王は２回行動、指定の攻撃リストからランダム選出）
 function enemyTurn() {
   if (gameState.monsterHp <= 0 || gameState.hero.hp <= 0) return;
   const m = gameState.currentMonster;
@@ -1163,20 +1178,11 @@ function enemyTurn() {
     let enemyDmg = Math.max(3, m.attack - h.defense + Math.floor(Math.random() * 5) - 2);
     let enemyActionText = "";
 
-    // 攻撃パターン分岐（「1回目の行動」などの文言を削除）
     if (m.isDoubleAction) {
-      const roll = Math.random();
-      if (roll < 0.35) {
-        // クラッカーれんだ
-        enemyDmg += 6;
-        enemyActionText = `${m.name}の クラッカーれんだ！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
-      } else if (roll < 0.7) {
-        // 激しい魔炎
-        enemyDmg += 4;
-        enemyActionText = `${m.name}は 激しい炎を はいた！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
-      } else {
-        enemyActionText = `${m.name}の こうげき！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
-      }
+      // プレゼント大魔王：リクエストされた攻撃リストからランダム選出
+      const attackName = DAIMAO_ATTACKS[Math.floor(Math.random() * DAIMAO_ATTACKS.length)];
+      enemyDmg += Math.floor(Math.random() * 5); // ダメージの乱数調整
+      enemyActionText = `${m.name}の 【${attackName}】！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
     } else if (gameState.stageIndex === 2 && Math.random() < 0.4) {
       // 第1形態プレゼント魔王の特殊攻撃
       enemyDmg += 6;
@@ -1221,7 +1227,6 @@ function handleMonsterDefeated() {
 
     logMessage(`${m.name}を たおした！\n……と 思われた そのとき！！`, () => {
       setTimeout(() => {
-        // おどろおどろしい変身演出
         audio.playTransformSound();
         container.classList.remove('anim-damage');
         container.classList.add('anim-transform');
@@ -1232,7 +1237,6 @@ function handleMonsterDefeated() {
             document.body.classList.remove('anim-shake');
             container.classList.remove('anim-transform');
 
-            // 勇者のレベルが2つUP！＆全ステータス強化
             const hero = gameState.hero;
             hero.level += 2;
             hero.maxHp += 45;
@@ -1241,7 +1245,7 @@ function handleMonsterDefeated() {
             hero.mp = hero.maxMp;
             hero.attack += 16;
             hero.defense += 8;
-            hero.spellTier = 3; // ベホイム & ギガデイン習得！
+            hero.spellTier = 3;
             
             updateHeroUI();
             audio.playPowerUpFanfare();
@@ -1254,7 +1258,7 @@ function handleMonsterDefeated() {
 
             logMessage(levelUp2Msg, () => {
               setTimeout(() => {
-                startStage(3); // 第2形態「プレゼント大魔王」との真の決戦へ！
+                startStage(3);
               }, 1800);
             });
           }, 1800);
@@ -1278,7 +1282,6 @@ function handleMonsterDefeated() {
       if (gameState.stageIndex === 0 || gameState.stageIndex === 1) {
         levelUpHero();
       } else if (gameState.stageIndex === 3) {
-        // 真の大魔王を撃破！
         triggerBirthdayCelebration();
       }
     }, 1400);
@@ -1291,14 +1294,13 @@ function levelUpHero() {
   h.level += 1;
 
   if (gameState.stageIndex === 1) {
-    // 2匹目の雑魚（ごちそうサウルス）撃破時：大幅強化＋ベホイミ・ベギラマ習得
     h.maxHp += 28;
     h.hp = h.maxHp;
     h.maxMp += 16;
     h.mp = h.maxMp;
     h.attack += 12;
     h.defense += 6;
-    h.spellTier = 2; // ベホイミ・ベギラマ解禁
+    h.spellTier = 2;
     
     updateHeroUI();
     audio.playPowerUpFanfare();
@@ -1312,7 +1314,6 @@ function levelUpHero() {
     });
 
   } else {
-    // 1匹目撃破時：通常のレベルアップ
     h.maxHp += 16;
     h.hp = h.maxHp;
     h.maxMp += 8;
@@ -1489,13 +1490,10 @@ window.onload = function() {
     gameState.hero.name = heroName;
     updateHeroUI();
 
-    // 名前決め画面を非表示にする
     document.getElementById('start-screen').classList.add('hidden');
     audio.playPowerUpFanfare();
 
-    // プロローグ表示画面へ
     showPrologue(heroName, () => {
-      // プロローグ終了後にバトル画面を表示＆第1戦スタート
       document.getElementById('game-container').classList.remove('hidden');
       startStage(0);
     });
