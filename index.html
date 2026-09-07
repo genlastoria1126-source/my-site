@@ -750,7 +750,7 @@ const STAGES = [
     name: "プレゼント大魔王",
     title: "バースデーの 大ボス（真の姿）",
     sprite: MONSTER_SVGS.demon2,
-    maxHp: 143,
+    maxHp: 255,
     attack: 35,
     defense: 18,
     isDoubleAction: true,
@@ -1179,12 +1179,10 @@ function enemyTurn() {
     let enemyActionText = "";
 
     if (m.isDoubleAction) {
-      // プレゼント大魔王：リクエストされた攻撃リストからランダム選出
       const attackName = DAIMAO_ATTACKS[Math.floor(Math.random() * DAIMAO_ATTACKS.length)];
-      enemyDmg += Math.floor(Math.random() * 5); // ダメージの乱数調整
+      enemyDmg += Math.floor(Math.random() * 5);
       enemyActionText = `${m.name}の 【${attackName}】！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
     } else if (gameState.stageIndex === 2 && Math.random() < 0.4) {
-      // 第1形態プレゼント魔王の特殊攻撃
       enemyDmg += 6;
       enemyActionText = `${m.name}の クラッカーれんだ！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
     } else {
