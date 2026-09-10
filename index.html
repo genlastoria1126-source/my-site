@@ -71,19 +71,6 @@
     75% { opacity: 0.1; filter: drop-shadow(0 0 20px #fbbf24); }
   }
 
-  @keyframes flash-gigadein {
-    0%, 100% { opacity: 1; filter: none; }
-    15% { opacity: 0.1; filter: drop-shadow(0 0 35px #a855f7) brightness(2.5); background-color: rgba(255,255,255,0.4); }
-    30% { opacity: 1; filter: drop-shadow(0 0 45px #38bdf8) brightness(3); }
-    50% { opacity: 0.2; filter: drop-shadow(0 0 50px #fbbf24) brightness(2); }
-    70% { opacity: 0.9; filter: drop-shadow(0 0 30px #ef4444); }
-  }
-
-  @keyframes transform-pulse {
-    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 15px #a855f7); }
-    50% { transform: scale(1.18); filter: drop-shadow(0 0 35px #ef4444) brightness(1.6); }
-  }
-
   @keyframes float-idle {
     0%, 100% { transform: translateY(0px); }
     50% { transform: translateY(-8px); }
@@ -99,14 +86,6 @@
 
   .anim-powerful {
     animation: flash-powerful 0.5s ease-in-out both;
-  }
-
-  .anim-gigadein {
-    animation: flash-gigadein 0.65s ease-in-out both;
-  }
-
-  .anim-transform {
-    animation: transform-pulse 0.8s ease-in-out infinite;
   }
 
   .anim-idle {
@@ -142,40 +121,7 @@
 <body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-4 overflow-x-hidden">
 <canvas id="confetti-canvas"></canvas>
 
-<!-- タイトル＆名前入力画面（初期表示：名前決めだけ） -->
-<div id="start-screen" class="w-full max-w-sm flex flex-col gap-4 relative z-20">
-  <div class="dq-window p-5 flex flex-col gap-4">
-    <div class="text-center border-b border-white/30 pb-3">
-      <div class="text-xs text-yellow-300 tracking-widest mb-1.5 font-bold">⚔️ BIRTHDAY QUEST I ⚔️</div>
-      <h2 class="text-white text-base sm:text-lg font-bold">あなたのなまえを 入力してください</h2>
-    </div>
-
-    <div>
-      <label class="text-xs text-gray-300 block mb-1.5 font-bold">あなたの なまえ：</label>
-      <input type="text" id="input-hero-name" maxlength="10" placeholder="aya" value="aya" class="w-full bg-black border-2 border-white p-2.5 text-base text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold rounded" />
-    </div>
-
-    <button id="start-adventure-btn" class="w-full py-3 mt-1 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-sm tracking-wider transition active:scale-95 rounded">
-      ▶ ぼうけんを はじめる！
-    </button>
-  </div>
-</div>
-
-<!-- プロローグ画面（冒険をはじめるボタン押下後に表示） -->
-<div id="prologue-screen" class="hidden w-full max-w-md flex flex-col gap-4 relative z-20">
-  <div class="dq-window p-5 flex flex-col justify-between min-h-[220px] cursor-pointer" id="prologue-box">
-    <div class="text-xs text-yellow-300 font-bold border-b border-white/20 pb-2 mb-3">
-      📜 はじまりのものがたり
-    </div>
-    <div id="prologue-text" class="text-sm sm:text-base leading-relaxed text-gray-100 whitespace-pre-wrap"></div>
-    <div class="text-right text-xs text-yellow-300 mt-4 h-5">
-      <span id="prologue-continue-hint" class="hidden cursor-blink font-bold">ぼうけんへ 出発する！</span>
-    </div>
-  </div>
-</div>
-
-<!-- メインゲーム画面（プロローグ終了後に表示） -->
-<div id="game-container" class="hidden w-full max-w-lg flex flex-col gap-3 relative z-10">
+<div class="w-full max-w-lg flex flex-col gap-3 relative z-10">
 
   <!-- ヘッダー：タイトルと音量 -->
   <div class="flex items-center justify-between px-2 text-xs sm:text-sm text-yellow-300">
@@ -231,16 +177,16 @@
   </div>
 
   <!-- モンスター出現ウィンドウ -->
-  <div class="dq-window h-60 sm:h-72 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-black">
+  <div class="dq-window h-56 sm:h-64 flex flex-col items-center justify-center relative overflow-hidden bg-gradient-to-b from-black via-zinc-950 to-black">
     <!-- 戦闘背景エフェクト -->
     <div class="absolute inset-0 opacity-15 pointer-events-none bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]"></div>
 
     <!-- 敵表示 -->
-    <div id="monster-container" class="flex flex-col items-center justify-center anim-idle z-10 transition-all duration-500">
-      <div id="monster-sprite" class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] transition-all duration-500">
+    <div id="monster-container" class="flex flex-col items-center justify-center anim-idle z-10 transition-transform">
+      <div id="monster-sprite" class="w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)]">
       </div>
       <div id="monster-name" class="mt-2 text-base sm:text-lg tracking-wider text-yellow-300 font-bold">
-        ケーキスライム
+        ショートスライム
       </div>
       <div class="w-28 sm:w-36 bg-neutral-900 border border-white/40 h-2 rounded mt-1 overflow-hidden">
         <div id="monster-hp-bar" class="bg-red-500 h-full w-full transition-all duration-300"></div>
@@ -294,24 +240,33 @@
   </div>
 </div>
 
-<!-- 設定モーダル（ゲーム中の名前変更用） -->
-<div id="modal-backdrop" class="fixed inset-0 bg-black/90 z-50 hidden flex items-center justify-center p-4">
+<!-- 設定モーダル（初回スタート画面 兼 名前変更） -->
+<div id="modal-backdrop" class="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4">
   <div class="dq-window w-full max-w-sm p-4 sm:p-5 flex flex-col gap-3">
     <div class="text-center border-b border-white/30 pb-2">
-      <h3 class="text-white text-sm sm:text-base font-bold">勇者としゅくふくの設定</h3>
+      <div class="text-[11px] text-yellow-300 tracking-widest mb-1">⚔️ BIRTHDAY QUEST ⚔️</div>
+      <h3 id="modal-title" class="text-white text-sm sm:text-base font-bold">あなたのなまえを 入力してください</h3>
     </div>
+
+    <!-- ストーリーあらすじ案内 -->
+    <div id="modal-prologue-preview" class="text-xs text-yellow-200/90 bg-neutral-900/80 border border-white/20 p-2.5 rounded leading-relaxed">
+      きょうは あなたの 特別な誕生日。<br>
+      しかし パーティーに必要な大切な宝が 魔物たちに奪われてしまった！<br>
+      宝を取り戻し、最高の誕生日を迎えるため 冒険へ旅立とう！
+    </div>
+
     <div>
       <label class="text-xs text-gray-300 block mb-1">あなたの なまえ：</label>
-      <input type="text" id="modal-hero-name" maxlength="10" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold" />
+      <input type="text" id="input-hero-name" maxlength="10" placeholder="例：たろう、バースデー" value="バースデー" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400 font-bold" />
     </div>
     <div>
       <label class="text-xs text-gray-300 block mb-1">お祝いメッセージ：</label>
-      <input type="text" id="modal-bday-msg" maxlength="40" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400" />
+      <input type="text" id="input-bday-msg" maxlength="40" value="すてきな １ねんに なりますように！" class="w-full bg-black border-2 border-white p-2 text-sm text-yellow-300 focus:outline-none focus:border-yellow-400" />
     </div>
     <div class="flex justify-end gap-2 mt-2">
-      <button id="modal-close-btn" class="px-3 py-1.5 border border-white text-xs hover:bg-white/10">キャンセル</button>
-      <button id="modal-save-btn" class="px-4 py-1.5 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs tracking-wider transition">
-        決定する
+      <button id="modal-close-btn" class="hidden px-3 py-1.5 border border-white text-xs hover:bg-white/10">キャンセル</button>
+      <button id="modal-submit-btn" class="w-full py-2 bg-yellow-400 hover:bg-yellow-300 text-black font-bold text-xs sm:text-sm tracking-wider transition active:scale-95">
+        ▶ ぼうけんを はじめる！
       </button>
     </div>
   </div>
@@ -404,16 +359,6 @@ class ChiptuneAudio {
     });
   }
 
-  // 究極呪文音（ギガデイン用：天を裂く雷光と轟音）
-  playGigadeinSound() {
-    if (this.muted) return;
-    this.init();
-    [1046, 880, 1318, 987, 1568, 1174, 1760, 2093, 260].forEach((f, i) => {
-      this.playTone(f, 'sawtooth', 0.1, 0.16, i * 0.03);
-    });
-    this.playTone(85, 'square', 0.45, 0.25, 0.2);
-  }
-
   // 回復（ホイミ）音
   playHealSound() {
     if (this.muted) return;
@@ -432,30 +377,12 @@ class ChiptuneAudio {
     });
   }
 
-  // 究極回復（ベホイム）音
-  playUltimateHealSound() {
-    if (this.muted) return;
-    this.init();
-    [329.63, 392.00, 523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98].forEach((f, i) => {
-      this.playTone(f, 'triangle', 0.2, 0.2, i * 0.05);
-    });
-  }
-
   // 被ダメージ音
   playDamageSound() {
     if (this.muted) return;
     this.init();
     this.playTone(110, 'sawtooth', 0.18, 0.22);
     this.playTone(90, 'square', 0.18, 0.18);
-  }
-
-  // 変身時のおどろおどろしい効果音
-  playTransformSound() {
-    if (this.muted) return;
-    this.init();
-    [120, 95, 80, 65, 55, 160, 220].forEach((f, i) => {
-      this.playTone(f, 'sawtooth', 0.18, 0.22, i * 0.08);
-    });
   }
 
   // 撃破ファンファーレ
@@ -507,9 +434,13 @@ class ChiptuneAudio {
 
     const beat = 0.45;
     const melody = [
+      // Hap-py Birth-day to you
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 2.0 },
+      // Hap-py Birth-day to you
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: A4, d: 1.0 }, { f: G4, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.0 },
+      // Hap-py Birth-day dear (Hero)
       { f: G4, d: 0.75 }, { f: G4, d: 0.25 }, { f: G5, d: 1.0 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: B4, d: 1.0 }, { f: A4, d: 1.5 },
+      // Hap-py Birth-day to you!
       { f: F5, d: 0.75 }, { f: F5, d: 0.25 }, { f: E5, d: 1.0 }, { f: C5, d: 1.0 }, { f: D5, d: 1.0 }, { f: C5, d: 2.5 }
     ];
 
@@ -544,164 +475,126 @@ class ChiptuneAudio {
 const audio = new ChiptuneAudio();
 
 // ========================================================
-// プレゼント大魔王のユニークな攻撃パターンリスト
-// ========================================================
-const DAIMAO_ATTACKS = [
-  "キリンがさかだちしたピアス",
-  "フラッグチェックのハンチング",
-  "ユニオンジャックのランニング",
-  "丸いレンズのサングラス",
-  "オレンジ色のハイヒール",
-  "白い真珠のネックレス",
-  "緑色した細い傘",
-  "シャガールみたいな青い夜",
-  "グレイス・ケリーの映画の券",
-  "ヴィヴィアン・リーのプロマイド",
-  "バディー・ホリーのドーナツ盤",
-  "ヘップバーンの写真集",
-  "お菓子のつまった赤い靴"
-];
-
-// ========================================================
-// ゲームデータ定義（3連戦＋真ボス：ケーキ → ごちそう → プレゼント魔王 → プレゼント大魔王）
+// ゲームデータ定義（3連戦：ケーキ → ごちそう → プレゼント）
 // ========================================================
 const MONSTER_SVGS = {
-  // 1. ケーキスライム
+  // 1. ショートスライム（イチゴショートケーキを冠した牙付き魔物スライム）
   slime: `
     <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_14px_rgba(56,189,248,0.5)]">
+      <!-- スライム本体（しずく型） -->
       <path d="M50 16 C30 16 16 42 16 64 C16 82 30 92 50 92 C70 92 84 82 84 64 C84 42 70 16 50 16 Z" fill="#0284c7" stroke="#082f49" stroke-width="2.5"/>
       <path d="M50 20 C66 20 78 44 78 64 C78 78 66 87 50 87 C34 87 22 78 22 64 C22 44 34 20 50 20 Z" fill="#38bdf8"/>
+      <!-- ハイライト -->
       <ellipse cx="33" cy="40" rx="5" ry="9" transform="rotate(-25 33 40)" fill="#bae6fd" opacity="0.85"/>
+      <!-- 生クリームのドリップ飾り -->
       <path d="M30 40 Q40 46 50 38 Q60 46 70 40 Q75 32 68 28 Q50 22 32 28 Q25 32 30 40 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
       <circle cx="50" cy="24" r="7" fill="#ef4444"/>
       <circle cx="48" cy="22" r="1.5" fill="#fef08a"/>
+      <!-- ろうそくと揺れる炎 -->
       <rect x="48" y="8" width="4" height="10" fill="#facc15" stroke="#ca8a04" stroke-width="1"/>
       <path d="M50 2 Q54 6 50 9 Q46 6 50 2 Z" fill="#ea580c">
         <animate attributeName="d" values="M50 2 Q54 6 50 9 Q46 6 50 2 Z;M50 1 Q55 5 50 9 Q45 5 50 1 Z;M50 2 Q54 6 50 9 Q46 6 50 2 Z" dur="0.6s" repeatCount="indefinite"/>
       </path>
+      <!-- 目（ドラクエ風クリクリ目） -->
       <circle cx="37" cy="58" r="7" fill="#ffffff" stroke="#0f172a" stroke-width="2.2"/>
       <circle cx="39" cy="58" r="3.5" fill="#0f172a"/>
       <circle cx="40" cy="56" r="1.3" fill="#ffffff"/>
       <circle cx="63" cy="58" r="7" fill="#ffffff" stroke="#0f172a" stroke-width="2.2"/>
       <circle cx="61" cy="58" r="3.5" fill="#0f172a"/>
       <circle cx="62" cy="56" r="1.3" fill="#ffffff"/>
+      <!-- 口と小さなキバ -->
       <path d="M42 70 Q50 78 58 70" fill="none" stroke="#0f172a" stroke-width="3" stroke-linecap="round"/>
       <polygon points="46,70 48,74 50,70" fill="#ffffff"/>
       <polygon points="52,70 54,74 56,70" fill="#ffffff"/>
     </svg>
   `,
 
-  // 2. はらぺこサウルス
+  // 2. ごちそうサウルス（バトルレックス風の凶暴な肉食恐竜モンスター）
   dino: `
-    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_166px_rgba(22,163,74,0.6)]">
+    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_16px_rgba(22,163,74,0.6)]">
+      <!-- 尻尾 -->
       <path d="M22 68 Q10 75 8 85 Q16 86 28 78 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
+      <!-- 背中のトゲ -->
       <polygon points="26,45 18,37 28,41" fill="#e11d48"/>
       <polygon points="32,37 26,29 35,35" fill="#e11d48"/>
       <polygon points="40,31 36,23 44,29" fill="#e11d48"/>
+      <!-- 胴体 -->
       <ellipse cx="48" cy="65" rx="26" ry="24" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/>
+      <!-- お腹の黄色蛇腹 -->
       <ellipse cx="50" cy="67" rx="16" ry="17" fill="#facc15" stroke="#ca8a04" stroke-width="1.5"/>
+      <!-- 腕とマンガ肉（骨付き肉） -->
       <path d="M30 60 Q22 60 25 72" stroke="#16a34a" stroke-width="6" stroke-linecap="round" fill="none"/>
       <rect x="11" y="62" width="22" height="15" rx="6" fill="#b91c1c" stroke="#7f1d1d" stroke-width="1.5" transform="rotate(-15 22 69)"/>
       <circle cx="9" cy="60" r="3.5" fill="#f8fafc"/>
       <circle cx="9" cy="67" r="3.5" fill="#f8fafc"/>
       <circle cx="35" cy="74" r="3.5" fill="#f8fafc"/>
       <circle cx="35" cy="80" r="3.5" fill="#f8fafc"/>
+      <!-- 足と鋭い爪 -->
       <path d="M36 84 L34 94 L44 94 L42 84 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
       <path d="M60 84 L58 94 L68 94 L66 84 Z" fill="#15803d" stroke="#14532d" stroke-width="2"/>
       <polygon points="33,94 35,97 37,94" fill="#ffffff"/>
       <polygon points="40,94 42,97 44,94" fill="#ffffff"/>
       <polygon points="57,94 59,97 61,94" fill="#ffffff"/>
       <polygon points="64,94 66,97 68,94" fill="#ffffff"/>
+      <!-- 頭部・凶暴なアゴ -->
       <path d="M42 48 C42 29 55 18 70 20 C82 22 89 31 89 42 C89 52 76 56 64 56 C52 56 42 54 42 48 Z" fill="#16a34a" stroke="#14532d" stroke-width="2.5"/>
+      <!-- 2本の角 -->
       <path d="M52 23 Q52 8 43 7 Q47 17 56 21 Z" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
       <path d="M64 19 Q68 7 61 5 Q61 15 67 19 Z" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
+      <!-- 開いた口・牙 -->
       <path d="M72 44 L89 44 L81 52 L68 50 Z" fill="#991b1b"/>
       <polygon points="73,44 75,48 77,44" fill="#ffffff"/>
       <polygon points="78,44 80,49 82,44" fill="#ffffff"/>
       <polygon points="83,44 85,48 87,44" fill="#ffffff"/>
       <polygon points="75,50 77,46 79,50" fill="#ffffff"/>
       <polygon points="81,50 83,46 85,50" fill="#ffffff"/>
+      <!-- ギラつく赤目 -->
       <polygon points="61,28 73,32 63,36" fill="#dc2626"/>
       <circle cx="67" cy="32" r="2.5" fill="#facc15"/>
       <circle cx="67" cy="32" r="1.2" fill="#000000"/>
+      <!-- 鼻息 -->
       <circle cx="87" cy="37" r="1.6" fill="#ea580c"/>
     </svg>
   `,
 
-  // 3. 第1形態：プレゼント魔王
-  demon1: `
+  // 3. プレゼント大魔王（プレゼントボックスから出現する邪悪な大魔王・ミミックロード）
+  demon: `
     <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_4px_22px_rgba(168,85,247,0.7)]">
+      <!-- 邪悪な魔力オーラ環 -->
       <circle cx="50" cy="46" r="38" fill="none" stroke="#c084fc" stroke-width="1.8" stroke-dasharray="4 3" opacity="0.75"/>
+      <!-- 巨大なコウモリの魔翼 -->
       <path d="M30 40 Q6 24 4 46 Q16 48 24 58 Q22 47 32 46 Z" fill="#4c1d95" stroke="#2e1065" stroke-width="2"/>
       <path d="M70 40 Q94 24 96 46 Q84 48 76 58 Q78 47 68 46 Z" fill="#4c1d95" stroke="#2e1065" stroke-width="2"/>
+      <!-- 魔王の頭部・威圧的な紫の肌 -->
       <path d="M50 20 C36 20 34 34 34 44 C34 56 42 62 50 62 C58 62 66 56 66 44 C66 34 64 20 50 20 Z" fill="#312e81" stroke="#1e1b4b" stroke-width="2.5"/>
+      <!-- 巨大な深紅の角 -->
       <path d="M38 28 Q22 15 24 5 Q33 15 42 22 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
       <path d="M62 28 Q78 15 76 5 Q67 15 58 22 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="1.8"/>
+      <!-- 黄金の魔王冠 -->
       <polygon points="40,20 44,11 50,17 56,11 60,20" fill="#facc15" stroke="#a16207" stroke-width="1.5"/>
       <circle cx="50" cy="18" r="2.2" fill="#ef4444"/>
+      <!-- 不気味に光る魔眼 -->
       <polygon points="38,36 47,38 40,43" fill="#f43f5e"/>
       <circle cx="43" cy="39" r="1.6" fill="#fef08a"/>
       <polygon points="62,36 53,38 60,43" fill="#f43f5e"/>
       <circle cx="57" cy="39" r="1.6" fill="#fef08a"/>
+      <!-- 邪悪なニヤリ笑いと牙 -->
       <path d="M43 51 Q50 58 57 51 Q50 62 43 51 Z" fill="#701a75" stroke="#4a044e" stroke-width="1"/>
       <polygon points="45,51 47,54 49,51" fill="#ffffff"/>
       <polygon points="51,51 53,54 55,51" fill="#ffffff"/>
+      <!-- 漆黒のマント・トゲ肩当て -->
       <path d="M28 58 L18 63 L32 70 Z" fill="#581c87" stroke="#3b0764" stroke-width="2"/>
       <path d="M72 58 L82 63 L68 70 Z" fill="#581c87" stroke="#3b0764" stroke-width="2"/>
+      <!-- 下半身：宝箱（ミミック調のプレゼントボックス） -->
       <rect x="23" y="66" width="54" height="28" rx="3" fill="#dc2626" stroke="#991b1b" stroke-width="2.5"/>
       <rect x="46" y="66" width="8" height="28" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
       <rect x="23" y="78" width="54" height="6" fill="#fbbf24" stroke="#d97706" stroke-width="1"/>
+      <!-- 箱のフチ（ギザギザの罠の歯） -->
       <polygon points="20,66 80,66 76,60 24,60" fill="#991b1b" stroke="#7f1d1d" stroke-width="2"/>
       <polygon points="27,66 31,62 35,66" fill="#ffffff"/>
       <polygon points="39,66 43,62 47,66" fill="#ffffff"/>
       <polygon points="53,66 57,62 61,66" fill="#ffffff"/>
       <polygon points="65,66 69,62 73,66" fill="#ffffff"/>
-    </svg>
-  `,
-
-  // 4. 第2形態：プレゼント大魔王（真の姿：燃え盛る金紅の邪神オーラと4本角・巨大迫力仕様）
-  demon2: `
-    <svg viewBox="0 0 100 100" class="w-full h-full drop-shadow-[0_0_35px_rgba(239,68,68,1)]">
-      <!-- 禍々しい真・魔法陣オーラ -->
-      <circle cx="50" cy="46" r="46" fill="none" stroke="#ef4444" stroke-width="2.8" stroke-dasharray="6 3">
-        <animateTransform attributeName="transform" type="rotate" from="0 50 46" to="360 50 46" dur="5s" repeatCount="indefinite"/>
-      </circle>
-      <circle cx="50" cy="46" r="38" fill="none" stroke="#fbbf24" stroke-width="1.8" stroke-dasharray="4 2">
-        <animateTransform attributeName="transform" type="rotate" from="360 50 46" to="0 50 46" dur="7s" repeatCount="indefinite"/>
-      </circle>
-      <!-- 巨大化・凶悪化した真・悪魔翼 -->
-      <path d="M26 44 Q1 16 0 48 Q14 53 22 64 Q18 48 30 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
-      <path d="M74 44 Q99 16 100 48 Q86 53 78 64 Q82 48 70 48 Z" fill="#991b1b" stroke="#450a0a" stroke-width="2.5"/>
-      <!-- 大魔王の頭部・深紅と暗黒の肌 -->
-      <path d="M50 15 C33 15 28 32 28 44 C28 58 39 65 50 65 C61 65 72 58 72 44 C72 32 67 15 50 15 Z" fill="#4a044e" stroke="#2e1065" stroke-width="3"/>
-      <!-- 禍々しい4本の角 -->
-      <path d="M36 23 Q12 6 15 -4 Q27 8 40 17 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2.2"/>
-      <path d="M64 23 Q88 6 85 -4 Q73 8 60 17 Z" fill="#f59e0b" stroke="#78350f" stroke-width="2.2"/>
-      <path d="M31 31 Q8 27 12 16 Q24 23 34 27 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/>
-      <path d="M69 31 Q92 27 88 16 Q76 23 66 27 Z" fill="#dc2626" stroke="#7f1d1d" stroke-width="2"/>
-      <!-- 黄金の覇王冠 -->
-      <polygon points="37,16 42,4 50,12 58,4 63,16" fill="#fbbf24" stroke="#78350f" stroke-width="2"/>
-      <circle cx="50" cy="12" r="3.2" fill="#dc2626"/>
-      <!-- 燃え盛る金赤の眼光 -->
-      <polygon points="35,33 47,37 37,44" fill="#ef4444"/>
-      <circle cx="42" cy="38" r="2.5" fill="#ffffff"/>
-      <polygon points="65,33 53,37 63,44" fill="#ef4444"/>
-      <circle cx="58" cy="38" r="2.5" fill="#ffffff"/>
-      <!-- 巨大な裂けた口と禍々しい牙 -->
-      <path d="M37 49 Q50 65 63 49 Q50 70 37 49 Z" fill="#450a0a" stroke="#000000" stroke-width="1.8"/>
-      <polygon points="40,49 43,56 46,49" fill="#ffffff"/>
-      <polygon points="48,49 51,57 54,49" fill="#ffffff"/>
-      <polygon points="56,49 59,56 62,49" fill="#ffffff"/>
-      <!-- 黄金の真・宝箱トラップボディ -->
-      <rect x="18" y="64" width="64" height="33" rx="4" fill="#7f1d1d" stroke="#f59e0b" stroke-width="3"/>
-      <rect x="46" y="64" width="8" height="33" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
-      <rect x="18" y="78" width="64" height="7" fill="#fbbf24" stroke="#b45309" stroke-width="1.5"/>
-      <polygon points="14,64 86,64 80,56 20,56" fill="#450a0a" stroke="#f59e0b" stroke-width="2"/>
-      <!-- 鋭利な金色の牙列 -->
-      <polygon points="22,64 27,58 32,64" fill="#fef08a"/>
-      <polygon points="36,64 41,57 46,64" fill="#fef08a"/>
-      <polygon points="54,64 59,57 64,64" fill="#fef08a"/>
-      <polygon points="68,64 73,58 78,64" fill="#fef08a"/>
     </svg>
   `
 };
@@ -709,7 +602,7 @@ const MONSTER_SVGS = {
 const STAGES = [
   {
     id: 1,
-    name: "ケーキスライム",
+    name: "ショートスライム",
     title: "ケーキの まもの",
     sprite: MONSTER_SVGS.slime,
     maxHp: 26,
@@ -717,12 +610,12 @@ const STAGES = [
     defense: 4,
     dropItemKey: "cake",
     dropItemName: "バースデーケーキ 🎂",
-    encounterMsg: "甘い香りと共に ケーキスライムが あらわれた！",
-    dropMsg: "ケーキスライムは たからばこを おとしていった！\nなんと 【バースデーケーキ】を てにいれた！"
+    encounterMsg: "甘い香りと共に ショートスライムが あらわれた！",
+    dropMsg: "ショートスライムは たからばこを おとしていった！\nなんと 【バースデーケーキ】を てにいれた！"
   },
   {
     id: 2,
-    name: "はらぺこサウルス",
+    name: "ごちそうサウルス",
     title: "パーティーの ごちそう",
     sprite: MONSTER_SVGS.dino,
     maxHp: 48,
@@ -730,41 +623,27 @@ const STAGES = [
     defense: 7,
     dropItemKey: "feast",
     dropItemName: "ごうかなごちそう 🍗🍕",
-    encounterMsg: "おいしそうな におい！ はらぺこサウルスが あらわれた！",
-    dropMsg: "はらぺこサウルスを たおした！\nおいしそうな 【ごちそう】を てにいれた！"
+    encounterMsg: "おいしそうな におい！ ごちそうサウルスが あらわれた！",
+    dropMsg: "ごちそうサウルスを たおした！\nおいしそうな 【ごちそう】を てにいれた！"
   },
   {
     id: 3,
-    name: "プレゼント魔王",
-    title: "バースデーの ボス（第１形態）",
-    sprite: MONSTER_SVGS.demon1,
+    name: "プレゼント大魔王",
+    title: "バースデーの 大ボス",
+    sprite: MONSTER_SVGS.demon,
     maxHp: 95,
     attack: 23,
     defense: 12,
-    dropItemKey: null,
-    encounterMsg: "リボンをたなびかせ、プレゼント魔王が たちふさがった！",
-    dropMsg: ""
-  },
-  {
-    id: 4,
-    name: "プレゼント大魔王",
-    title: "バースデーの 大ボス（真の姿）",
-    sprite: MONSTER_SVGS.demon2,
-    maxHp: 255,
-    attack: 35,
-    defense: 18,
-    isDoubleAction: true,
-    isGiant: true,
     dropItemKey: "present",
     dropItemName: "最高のプレゼント 🎁✨",
-    encounterMsg: "まばゆい邪光とともに プレゼント大魔王が 襲いかかってきた！",
-    dropMsg: "プレゼント大魔王は ひかりかがやき くず折れた！\nまばゆい 【最高のプレゼント】を てにいれた！！"
+    encounterMsg: "リボンをたなびかせ、プレゼント大魔王が たちふさがった！",
+    dropMsg: "プレゼント大魔王は ひかりかがやき くず折れた！\nまばゆい 【プレゼントの箱】を てにいれた！！"
   }
 ];
 
 let gameState = {
   hero: {
-    name: "aya",
+    name: "バースデー",
     level: 1,
     hp: 34,
     maxHp: 34,
@@ -772,7 +651,7 @@ let gameState = {
     maxMp: 14,
     attack: 14,
     defense: 6,
-    spellTier: 1
+    hasAdvancedSpells: false // ベホイミ＆ベギラマ習得フラグ
   },
   stageIndex: 0,
   currentMonster: null,
@@ -828,20 +707,13 @@ function updateHeroUI() {
   document.getElementById('hero-atk').innerText = h.attack;
   document.getElementById('hero-def').innerText = h.defense;
 
+  // 呪文パワーアップ状態に応じたコマンドボタン更新
   const magicTextEl = document.getElementById('magic-text');
   const magicCursorEl = document.getElementById('magic-cursor');
   const giraTextEl = document.getElementById('gira-text');
   const giraCursorEl = document.getElementById('gira-cursor');
 
-  if (h.spellTier === 3) {
-    magicTextEl.innerText = "ベホイム(10)";
-    magicTextEl.className = "text-emerald-300 font-bold";
-    magicCursorEl.className = "mr-1 text-emerald-400";
-
-    giraTextEl.innerText = "ギガデイン(14)";
-    giraTextEl.className = "text-purple-300 font-bold";
-    giraCursorEl.className = "mr-1 text-purple-400";
-  } else if (h.spellTier === 2) {
+  if (h.hasAdvancedSpells) {
     magicTextEl.innerText = "ベホイミ(6)";
     magicTextEl.className = "text-emerald-300 font-bold";
     magicCursorEl.className = "mr-1 text-emerald-400";
@@ -889,60 +761,6 @@ function updateInventoryUI() {
   document.getElementById('items-collected-count').innerText = `${count} / 3 個`;
 }
 
-// プロローグ専用のタイピング表示
-let prologueTimer = null;
-function showPrologue(heroName, onComplete) {
-  const prologueScreen = document.getElementById('prologue-screen');
-  const prologueTextEl = document.getElementById('prologue-text');
-  const hintEl = document.getElementById('prologue-continue-hint');
-
-  prologueScreen.classList.remove('hidden');
-  prologueTextEl.innerText = "";
-  hintEl.classList.add('hidden');
-
-  const story = 
-    `きょうは ${heroName}の 特別な誕生日。\n\n` +
-    `しかし、誕生日パーティーに必要な\n` +
-    `大切な宝物が 魔物たちに奪われてしまった！\n\n` +
-    `${heroName}は 宝を取り戻し、最高の誕生日を\n` +
-    `迎えるため 冒険の旅へ出た！`;
-
-  let i = 0;
-  let isDone = false;
-
-  function finishTyping() {
-    if (isDone) return;
-    isDone = true;
-    if (prologueTimer) clearTimeout(prologueTimer);
-    prologueTextEl.innerText = story;
-    hintEl.classList.remove('hidden');
-  }
-
-  function typeChar() {
-    if (i < story.length) {
-      prologueTextEl.innerText += story.charAt(i);
-      i++;
-      prologueTimer = setTimeout(typeChar, 28);
-    } else {
-      finishTyping();
-    }
-  }
-
-  typeChar();
-
-  const clickHandler = () => {
-    if (!isDone) {
-      finishTyping();
-    } else {
-      document.getElementById('prologue-box').removeEventListener('click', clickHandler);
-      prologueScreen.classList.add('hidden');
-      onComplete();
-    }
-  };
-
-  document.getElementById('prologue-box').addEventListener('click', clickHandler);
-}
-
 function updateMonsterUI() {
   const m = gameState.currentMonster;
   const spriteEl = document.getElementById('monster-sprite');
@@ -952,13 +770,6 @@ function updateMonsterUI() {
   if (!m) return;
   spriteEl.innerHTML = m.sprite;
   nameEl.innerText = `${m.name}`;
-
-  // 大魔王のときは威圧感を出すためサイズを巨大化
-  if (m.isGiant) {
-    spriteEl.className = "w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center select-none filter drop-shadow-[0_12px_24px_rgba(239,68,68,0.9)] scale-110 sm:scale-125 transition-all duration-500";
-  } else {
-    spriteEl.className = "w-24 h-24 sm:w-28 sm:h-28 flex items-center justify-center select-none filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.8)] transition-all duration-500";
-  }
 
   const pct = Math.max(0, (gameState.monsterHp / m.maxHp) * 100);
   barEl.style.width = `${pct}%`;
@@ -997,7 +808,7 @@ function startStage(stageIdx) {
   updateMonsterUI();
   
   const container = document.getElementById('monster-container');
-  container.classList.remove('anim-shake', 'anim-damage', 'anim-powerful', 'anim-gigadein', 'anim-transform');
+  container.classList.remove('anim-shake', 'anim-damage', 'anim-powerful');
   container.style.opacity = '1';
 
   logMessage(m.encounterMsg, () => {
@@ -1042,16 +853,9 @@ function handlePlayerAction(action) {
     });
 
   } else if (action === 'heal') {
-    let cost = 3;
-    let spellName = "ホイミ";
-
-    if (hero.spellTier === 3) {
-      cost = 10;
-      spellName = "ベホイム";
-    } else if (hero.spellTier === 2) {
-      cost = 6;
-      spellName = "ベホイミ";
-    }
+    // ホイミ(3) or ベホイミ(6)
+    const cost = hero.hasAdvancedSpells ? 6 : 3;
+    const spellName = hero.hasAdvancedSpells ? "ベホイミ" : "ホイミ";
 
     if (hero.mp < cost) {
       audio.playTone(180, 'sawtooth', 0.15);
@@ -1064,14 +868,11 @@ function handlePlayerAction(action) {
 
     hero.mp -= cost;
     let healVal = 0;
-    if (hero.spellTier === 3) {
-      healVal = Math.floor(Math.random() * 21) + 85;
-      audio.playUltimateHealSound();
-    } else if (hero.spellTier === 2) {
-      healVal = Math.floor(Math.random() * 16) + 50;
+    if (hero.hasAdvancedSpells) {
+      healVal = Math.floor(Math.random() * 16) + 50; // ベホイミ: 50〜65回復
       audio.playBigHealSound();
     } else {
-      healVal = Math.floor(Math.random() * 8) + 16;
+      healVal = Math.floor(Math.random() * 8) + 16;  // ホイミ: 16〜23回復
       audio.playHealSound();
     }
     
@@ -1083,16 +884,9 @@ function handlePlayerAction(action) {
     });
 
   } else if (action === 'gira') {
-    let cost = 4;
-    let spellName = "ギラ";
-
-    if (hero.spellTier === 3) {
-      cost = 14;
-      spellName = "ギガデイン";
-    } else if (hero.spellTier === 2) {
-      cost = 8;
-      spellName = "ベギラマ";
-    }
+    // ギラ(4) or ベギラマ(8)
+    const cost = hero.hasAdvancedSpells ? 8 : 4;
+    const spellName = hero.hasAdvancedSpells ? "ベギラマ" : "ギラ";
 
     if (hero.mp < cost) {
       audio.playTone(180, 'sawtooth', 0.15);
@@ -1105,39 +899,35 @@ function handlePlayerAction(action) {
 
     hero.mp -= cost;
     let spellDmg = 0;
-    let castText = "";
-
-    if (hero.spellTier === 3) {
-      spellDmg = Math.floor(Math.random() * 16) + 75;
-      audio.playGigadeinSound();
-      container.classList.add('anim-gigadein', 'anim-shake');
-      setTimeout(() => container.classList.remove('anim-gigadein', 'anim-shake'), 650);
-      castText = `${hero.name}は ギガデインを となえた！\n天を裂く 神聖な雷光が ${monster.name}を 撃ち砕く！！\n${spellDmg}の 絶大なダメージ！`;
-    } else if (hero.spellTier === 2) {
+    if (hero.hasAdvancedSpells) {
+      // ベギラマ: 38〜48ダメージの大威力
       spellDmg = Math.floor(Math.random() * 11) + 38;
       audio.playBigMagicSound();
       container.classList.add('anim-powerful', 'anim-shake');
       setTimeout(() => container.classList.remove('anim-powerful', 'anim-shake'), 500);
-      castText = `${hero.name}は ベギラマを となえた！\nごうおんとともに 激しい雷炎が ${monster.name}を つつむ！\n${spellDmg}の 甚大なダメージ！`;
     } else {
+      // ギラ: 18〜24ダメージ
       spellDmg = Math.floor(Math.random() * 7) + 18;
       audio.playMagicSound();
       container.classList.add('anim-damage');
       setTimeout(() => container.classList.remove('anim-damage'), 400);
-      castText = `${hero.name}は ギラを となえた！\nせんこうが はしり ${monster.name}に ${spellDmg}の ダメージ！`;
     }
 
     gameState.monsterHp = Math.max(0, gameState.monsterHp - spellDmg);
     updateHeroUI();
     updateMonsterUI();
 
+    const castText = hero.hasAdvancedSpells
+      ? `${hero.name}は ベギラマを となえた！\nごうおんとともに 激しい雷炎が ${monster.name}を つつむ！\n${spellDmg}の 甚大なダメージ！`
+      : `${hero.name}は ギラを となえた！\nせんこうが はしり ${monster.name}に ${spellDmg}の ダメージ！`;
+
     logMessage(castText, () => {
       checkBattleResolution();
     });
 
   } else if (action === 'escape') {
-    if (gameState.stageIndex >= 2) {
-      logMessage("魔王の まえでは にげられない！", () => {
+    if (gameState.stageIndex === 2) {
+      logMessage("プレゼント大魔王の まえでは にげられない！", () => {
         setTimeout(enemyTurn, 600);
       });
       return;
@@ -1166,139 +956,74 @@ function checkBattleResolution() {
   }
 }
 
-// 敵のターン（大魔王は２回行動、指定の攻撃リストからランダム選出）
+// 敵のターン
 function enemyTurn() {
   if (gameState.monsterHp <= 0 || gameState.hero.hp <= 0) return;
   const m = gameState.currentMonster;
   const h = gameState.hero;
 
-  const totalActions = m.isDoubleAction ? 2 : 1;
+  let enemyDmg = Math.max(2, m.attack - h.defense + Math.floor(Math.random() * 3) - 1);
+  let enemyActionText = `${m.name}の こうげき！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
 
-  const performEnemyAction = (actionIndex) => {
-    let enemyDmg = Math.max(3, m.attack - h.defense + Math.floor(Math.random() * 5) - 2);
-    let enemyActionText = "";
+  // ボスの特殊行動（クラッカー乱れ撃ち）
+  if (gameState.stageIndex === 2 && Math.random() < 0.4) {
+    enemyDmg += 7;
+    enemyActionText = `${m.name}の クラッカーれんだ！\nパーティーの いりょくで ${h.name}は ${enemyDmg}の 大ダメージ！`;
+  }
 
-    if (m.isDoubleAction) {
-      const attackName = DAIMAO_ATTACKS[Math.floor(Math.random() * DAIMAO_ATTACKS.length)];
-      enemyDmg += Math.floor(Math.random() * 5);
-      enemyActionText = `${m.name}の 【${attackName}】！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
-    } else if (gameState.stageIndex === 2 && Math.random() < 0.4) {
-      enemyDmg += 6;
-      enemyActionText = `${m.name}の クラッカーれんだ！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
+  audio.playDamageSound();
+  h.hp = Math.max(0, h.hp - enemyDmg);
+  updateHeroUI();
+
+  document.body.classList.add('anim-shake');
+  setTimeout(() => document.body.classList.remove('anim-shake'), 300);
+
+  logMessage(enemyActionText, () => {
+    if (h.hp <= 0) {
+      setTimeout(handleGameOver, 700);
     } else {
-      enemyActionText = `${m.name}の こうげき！\n${h.name}は ${enemyDmg}の ダメージを うけた！`;
+      gameState.isBusy = false;
+      setButtonsEnabled(true);
     }
-
-    audio.playDamageSound();
-    h.hp = Math.max(0, h.hp - enemyDmg);
-    updateHeroUI();
-
-    document.body.classList.add('anim-shake');
-    setTimeout(() => document.body.classList.remove('anim-shake'), 300);
-
-    logMessage(enemyActionText, () => {
-      if (h.hp <= 0) {
-        setTimeout(handleGameOver, 700);
-      } else {
-        if (actionIndex < totalActions) {
-          setTimeout(() => performEnemyAction(actionIndex + 1), 600);
-        } else {
-          gameState.isBusy = false;
-          setButtonsEnabled(true);
-        }
-      }
-    });
-  };
-
-  performEnemyAction(1);
+  });
 }
 
-// モンスター撃破処理
+// モンスター撃破処理＆アイテムドロップ
 function handleMonsterDefeated() {
   const m = gameState.currentMonster;
-  const container = document.getElementById('monster-container');
-
-  // 第1形態（プレゼント魔王）撃破時：正体を現し、勇者は2レベルUP＆ベホイム・ギガデイン習得！
-  if (gameState.stageIndex === 2) {
-    audio.playTone(220, 'square', 0.25);
-    container.classList.add('anim-damage');
-
-    logMessage(`${m.name}を たおした！\n……と 思われた そのとき！！`, () => {
-      setTimeout(() => {
-        audio.playTransformSound();
-        container.classList.remove('anim-damage');
-        container.classList.add('anim-transform');
-        document.body.classList.add('anim-shake');
-
-        logMessage("なんと！ プレゼント魔王が 正体を現したっ！", () => {
-          setTimeout(() => {
-            document.body.classList.remove('anim-shake');
-            container.classList.remove('anim-transform');
-
-            const hero = gameState.hero;
-            hero.level += 2;
-            hero.maxHp += 45;
-            hero.hp = hero.maxHp;
-            hero.maxMp += 30;
-            hero.mp = hero.maxMp;
-            hero.attack += 16;
-            hero.defense += 8;
-            hero.spellTier = 3;
-            
-            updateHeroUI();
-            audio.playPowerUpFanfare();
-
-            const levelUp2Msg = 
-              `奇跡の バースデーパワーが あふれ出る！\n` +
-              `${hero.name}の レベルが ${hero.level}に あがった！（レベル２UP！）\n` +
-              `なんと 最強呪文【ベホイム】と 【ギガデイン】を おぼえた！\n` +
-              `ＨＰと ＭＰが まんたんになった！`;
-
-            logMessage(levelUp2Msg, () => {
-              setTimeout(() => {
-                startStage(3);
-              }, 1800);
-            });
-          }, 1800);
-        });
-      }, 900);
-    });
-    return;
-  }
-
-  // 通常撃破（スライム、サウルス、大魔王）
   audio.playFanfare();
+
+  const container = document.getElementById('monster-container');
   container.style.opacity = '0';
 
-  if (m.dropItemKey) {
-    gameState.inventory[m.dropItemKey] = true;
-    updateInventoryUI();
-  }
+  gameState.inventory[m.dropItemKey] = true;
+  updateInventoryUI();
 
   logMessage(`${m.name}を たおした！\n${m.dropMsg}`, () => {
     setTimeout(() => {
-      if (gameState.stageIndex === 0 || gameState.stageIndex === 1) {
+      if (gameState.stageIndex < STAGES.length - 1) {
         levelUpHero();
-      } else if (gameState.stageIndex === 3) {
+      } else {
         triggerBirthdayCelebration();
       }
     }, 1400);
   });
 }
 
-// 通常レベルアップ（スライム撃破時、サウルス撃破時）
+// レベルアップ（2匹目撃破でベホイミ＆ベギラマ習得！）
 function levelUpHero() {
   const h = gameState.hero;
   h.level += 1;
 
   if (gameState.stageIndex === 1) {
+    // 2匹目の雑魚（ごちそうサウルス）撃破時：大幅強化＋呪文パワーアップ！
     h.maxHp += 28;
     h.hp = h.maxHp;
     h.maxMp += 16;
     h.mp = h.maxMp;
     h.attack += 12;
     h.defense += 6;
-    h.spellTier = 2;
+    h.hasAdvancedSpells = true; // ベホイミ・ベギラマ解禁
     
     updateHeroUI();
     audio.playPowerUpFanfare();
@@ -1312,6 +1037,7 @@ function levelUpHero() {
     });
 
   } else {
+    // 1匹目撃破時：通常のレベルアップ
     h.maxHp += 16;
     h.hp = h.maxHp;
     h.maxMp += 8;
@@ -1359,7 +1085,7 @@ function triggerBirthdayCelebration() {
   overlay.classList.remove('hidden');
 
   const msgBox = document.getElementById('birthday-custom-msg');
-  msgBox.innerText = `🎂 ${gameState.hero.name} おたんじょうび おめでとう！ 🎂\n${gameState.customBirthdayMsg}\nケーキ・ごちそう・プレゼントが すべてそろい、さいこうの バースデーが はじまる！`;
+  msgBox.innerText = `🎂 ${gameState.hero.name}さん おたんじょうび おめでとうございます！ 🎂\n${gameState.customBirthdayMsg}\nケーキ・ごちそう・プレゼントが すべてそろい、さいこうの バースデーが はじまる！`;
 
   logMessage(`★ おめでとう！！ ★\n${gameState.hero.name}は プレゼント大魔王を たおし、世界に たのしい たんじょうびを とりもどした！`, () => {
     gameState.isBusy = false;
@@ -1434,7 +1160,7 @@ function resetGame() {
   document.getElementById('celebration-overlay').classList.add('hidden');
 
   gameState.hero = {
-    name: gameState.hero.name || "aya",
+    name: gameState.hero.name || "バースデー",
     level: 1,
     hp: 34,
     maxHp: 34,
@@ -1442,7 +1168,7 @@ function resetGame() {
     maxMp: 14,
     attack: 14,
     defense: 6,
-    spellTier: 1
+    hasAdvancedSpells: false
   };
   gameState.inventory = {
     cake: false,
@@ -1477,47 +1203,75 @@ window.onload = function() {
     }
   });
 
-  // 初回スタートボタン（名前決定 ➔ プロローグ表示）
-  const startBtn = document.getElementById('start-adventure-btn');
-  const nameInput = document.getElementById('input-hero-name');
-
-  startBtn.addEventListener('click', () => {
-    audio.init();
-    const heroName = nameInput.value.trim() || "aya";
-
-    gameState.hero.name = heroName;
-    updateHeroUI();
-
-    document.getElementById('start-screen').classList.add('hidden');
-    audio.playPowerUpFanfare();
-
-    showPrologue(heroName, () => {
-      document.getElementById('game-container').classList.remove('hidden');
-      startStage(0);
-    });
-  });
-
-  // ゲームプレイ中の名前変更モーダル処理
   const modal = document.getElementById('modal-backdrop');
-  const modalHeroName = document.getElementById('modal-hero-name');
-  const modalBdayMsg = document.getElementById('modal-bday-msg');
+  const nameInput = document.getElementById('input-hero-name');
+  const msgInput = document.getElementById('input-bday-msg');
+  const modalTitle = document.getElementById('modal-title');
+  const modalCloseBtn = document.getElementById('modal-close-btn');
+  const modalSubmitBtn = document.getElementById('modal-submit-btn');
 
+  // ゲーム中の名前変更ボタン
   document.getElementById('rename-btn').addEventListener('click', () => {
-    modalHeroName.value = gameState.hero.name;
-    modalBdayMsg.value = gameState.customBirthdayMsg;
+    modalTitle.innerText = "勇者としゅくふくの設定";
+    document.getElementById('modal-prologue-preview').classList.add('hidden');
+    nameInput.value = gameState.hero.name;
+    msgInput.value = gameState.customBirthdayMsg;
+    modalCloseBtn.classList.remove('hidden');
+    modalSubmitBtn.classList.remove('w-full');
+    modalSubmitBtn.innerText = "決定する";
     modal.classList.remove('hidden');
   });
 
-  document.getElementById('modal-close-btn').addEventListener('click', () => {
+  // キャンセルボタン（変更時のみ）
+  modalCloseBtn.addEventListener('click', () => {
     modal.classList.add('hidden');
   });
 
-  document.getElementById('modal-save-btn').addEventListener('click', () => {
-    gameState.hero.name = modalHeroName.value.trim() || "aya";
-    gameState.customBirthdayMsg = modalBdayMsg.value.trim() || "すてきな １ねんに なりますように！";
+  // 決定・開始ボタン
+  modalSubmitBtn.addEventListener('click', () => {
+    const newName = nameInput.value.trim() || "バースデー";
+    const newMsg = msgInput.value.trim() || "すてきな １ねんに なりますように！";
+    gameState.hero.name = newName;
+    gameState.customBirthdayMsg = newMsg;
     updateHeroUI();
     modal.classList.add('hidden');
+
+    // まだ開始していない場合はプロローグを流してからスタート
+    if (!gameState.isGameStarted) {
+      gameState.isGameStarted = true;
+      audio.playPowerUpFanfare();
+      
+      const prologueStory = 
+        `きょうは ${newName}の とくべつな たんじょうび！\n` +
+        `しかし パーティーに ひつような ３つの宝物が\n` +
+        `わるい魔物たちに うばわれてしまった…！\n\n` +
+        `${newName}は 宝をとりもどすため、冒険の旅にでた！`;
+
+      gameState.isBusy = true;
+      setButtonsEnabled(false);
+      logMessage(prologueStory, () => {
+        const hint = document.getElementById('continue-hint');
+        hint.classList.remove('hidden');
+        
+        const proceedToFirstBattle = () => {
+          document.getElementById('msg-box').removeEventListener('click', proceedToFirstBattle);
+          hint.classList.add('hidden');
+          startStage(0);
+        };
+        
+        document.getElementById('msg-box').addEventListener('click', proceedToFirstBattle);
+        // クリックしなくても2.8秒後に自動で第1戦へ移行
+        setTimeout(() => {
+          proceedToFirstBattle();
+        }, 2800);
+      });
+    }
   });
+
+  // 初期ステータス表示の更新（開始前）
+  updateHeroUI();
+  updateInventoryUI();
+  logMessage("あなたの なまえを 入力してください…");
 };
 </script>
 </body>
